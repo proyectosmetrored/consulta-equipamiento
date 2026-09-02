@@ -249,7 +249,39 @@
 <div id="toast" class="toast"></div>
 
 <script>
-/* ==== CONFIG (la clave se valida en el flujo, nunca aquí) ==== */
+/* ============================================================================
+   PORTAL DE CONSULTA POR CENTRO — Equipamiento de Consultorios (Metrored)
+   Para: las supervisoras. Cada una entra con su centro y su contraseña,
+   y ve ÚNICAMENTE los registros de su centro. Es SOLO LECTURA.
+   ----------------------------------------------------------------------------
+   SEGURIDAD — LAS DOS REGLAS QUE NO SE PUEDEN ROMPER
+
+   1) La contraseña NUNCA llega al navegador.
+      Vive en la lista "Accesos" de SharePoint, que solo lee el flujo por
+      detrás. Esta pantalla manda {centro, contrasena} y el flujo responde
+      apenas ok:true / ok:false.
+      >> Si algún día alguien agrega la contraseña al flujo de catálogos,
+         quedaría a la vista de cualquiera: este sitio es público y el
+         código se puede leer. NO lo hagas.
+
+   2) El filtrado por centro se hace en el SERVIDOR, no aquí.
+      El flujo devuelve solo los registros de ese centro. Si filtráramos en
+      la pantalla, los datos de los demás centros igual habrían viajado al
+      navegador y bastaría con mirar el tráfico para verlos.
+   ----------------------------------------------------------------------------
+   CÓMO TRAE LOS DATOS
+   Igual que el tablero: por tandas ("dame los siguientes al ID tal"), con
+   LOTE_CONS, que debe coincidir con el "Primeros puestos" del flujo.
+   Si el flujo todavía no acepta "desdeId", el bucle detecta las filas
+   repetidas y se corta solo: se comporta como antes, no se rompe.
+
+   >> PENDIENTE CONOCIDO (al escribir esto):
+      al bloque "Obtener Registros centro" del flujo le falta ACTIVAR LA
+      PAGINACIÓN, así que devuelve como mucho 100 registros (el tope por
+      defecto de SharePoint). Los centros con más de 100 registros ven solo
+      una parte. Se arregla en el flujo, no aquí: Configuración ->
+      Paginación: Activado -> Umbral 5000.
+   ============================================================================ */
 const CONSULTA_URL = "https://default480bd49c6f894faab39ec7728d95d1.30.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c3a3b3a2b36a4ffe8d2b46d63f41ff21/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t2iSpmsEzu4fxvW0FB5PMpfQDPKxHys-cEMtjn5GXxA";
 const CATALOGOS_URL = "https://default480bd49c6f894faab39ec7728d95d1.30.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4e7603afaa634f939c70db7787ae34bb/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ONrgwLUoMl6UptXg3P6g_QHkeyMV8HtHfuD7ibzRGmI";
 
@@ -310,22 +342,57 @@ async function entrar(){
   const err=$("#loginErr"); err.classList.add("hide");
   if(!centro||!clave){ err.textContent="Elige tu centro y escribe la contraseña."; err.classList.remove("hide"); return; }
   const btn=$("#btnEntrar"); btn.disabled=true; btn.textContent="Consultando…";
-  let data=null;
-  for(let i=0;i<3 && !data;i++){
-    try{ const r=await fetch(CONSULTA_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({centro,contrasena:clave})}); data=await r.json(); }catch(e){}
+
+  // Carga POR TANDAS: el flujo devuelve hasta LOTE ítems por llamada, ordenados por ID.
+  // Pedimos "los siguientes a partir del último ID" hasta que se acabe el detalle.
+  // Así funciona igual con 1.000 que con 500.000 filas.
+  let desdeId=0, cabeceras=null, crudo=[], vistos=new Set(), vueltas=0, data=null, ultima=null;
+  while(vueltas++ < 400){
+    ultima = await pedirLoteConsulta(centro, clave, desdeId);
+    if(!ultima) break;                                  // sin conexión
+    data = ultima;
+    if(!data.ok) break;                                 // clave incorrecta
+    if(!cabeceras) cabeceras = data.registros||[];
+    const lote = data.detalle||[];
+    // descarta repetidos: si el flujo todavía no acepta "desdeId", el bucle se corta solo
+    const nuevos = lote.filter(x=>{ const k=x.ID; if(k==null||vistos.has(k)) return false; vistos.add(k); return true; });
+    crudo = crudo.concat(nuevos);
+    btn.textContent = "Cargando… "+crudo.length.toLocaleString("es-EC");
+    if(!nuevos.length || lote.length < LOTE_CONS) break;
+    let max=desdeId;
+    for(const x of lote){ const n=Number(x.ID); if(isFinite(n) && n>max) max=n; }
+    if(max<=desdeId) break;                             // seguridad: nunca repetir la misma tanda
+    desdeId=max;
   }
+
   btn.disabled=false; btn.textContent="Entrar";
   if(!data){ err.textContent="No se pudo conectar. Revisa tu internet e inténtalo de nuevo."; err.classList.remove("hide"); return; }
   if(!data.ok){ err.textContent="Centro o contraseña incorrectos."; err.classList.remove("hide"); $("#clave").value=""; return; }
   CENTRO_ACTUAL=centro;
-  const regs=(data.registros||[]).map(normalizarReg);
+  const regs=(cabeceras||[]).map(normalizarReg);
   // agrupar el detalle por su registro (relación IdClienteRegistro = IdCliente)
   const porReg={};
-  (data.detalle||[]).forEach(x=>{ const k=v(x.IdClienteRegistro); (porReg[k]=porReg[k]||[]).push(normalizarDet(x)); });
+  crudo.forEach(x=>{ const k=v(x.IdClienteRegistro); (porReg[k]=porReg[k]||[]).push(normalizarDet(x)); });
   regs.forEach(r=>{ r.detalle = porReg[r.id] || []; });
   REGISTROS=regs;
   $("#clave").value="";
   mostrarPanel();
+}
+
+/* Tamaño de cada tanda. Debe coincidir con el "Superior contar" del flujo. */
+const LOTE_CONS = 5000;
+
+/* Pide una tanda de detalle a partir de un ID, con reintentos. */
+async function pedirLoteConsulta(centro, clave, desdeId){
+  for(let i=0;i<3;i++){
+    try{
+      const r = await fetch(CONSULTA_URL, { method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ centro:centro, contrasena:clave, desdeId:desdeId }) });
+      if(r.ok) return await r.json();
+    }catch(e){ /* reintenta */ }
+  }
+  return null;
 }
 function normalizarReg(x){
   return {
@@ -340,7 +407,7 @@ function normalizarReg(x){
 function normalizarDet(x){
   const c=String(v(x.Cumple)).trim().toLowerCase();
   const cumple = (c==="sí"||c==="si")?true : (c==="no"?false : null);
-  return { categoria:v(x.Categoria), item:v(x.Title)||v(x.Item), cumple,
+  return { categoria:v(x.Categoria), subgrupo:v(x.Subgrupo), item:v(x.Title)||v(x.Item), cumple,
     cantidad:numN(x.Cantidad), reposicion:numN(x.Reposicion), retirar:numN(x.Retirar),
     observacion:v(x.Observacion) };
 }
@@ -602,14 +669,14 @@ function csv(x){ x=String(x==null?"":x); return /[",\r\n;]/.test(x)?'"'+x.replac
 function descargarExcel(){
   const arr=filtrar().sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
   if(!arr.length){ toast("No hay registros para descargar"); return; }
-  const cols=["Fecha","Hora","Turno","Especialidad","N° Consultorio","Responsable","Obs. generales","Categoría","Ítem","Cumple","Cantidad","Reposición","Retirar","Observación"];
+  const cols=["Fecha","Hora","Turno","Especialidad","N° Consultorio","Responsable","Obs. generales","Categoría","Subgrupo","Ítem","Cumple","Cantidad","Reposición","Retirar","Observación"];
   const filas=[cols.map(csv).join(",")];
   const cumTxt=c=>c===null?"":(c?"Sí":"No");
   arr.forEach(r=>{
     const resp=r.fisioterapista||r.enfermero||r.auxiliar||"";
     const base=[r.fecha,r.hora,r.turno,r.especialidad,r.numeroConsultorio,resp,r.observacionesGenerales];
-    if(!(r.detalle||[]).length){ filas.push(base.concat(["","","","","","",""]).map(csv).join(",")); return; }
-    r.detalle.forEach(d=>{ filas.push(base.concat([d.categoria,d.item,cumTxt(d.cumple),d.cantidad??"",d.reposicion??"",d.retirar??"",d.observacion]).map(csv).join(",")); });
+    if(!(r.detalle||[]).length){ filas.push(base.concat(["","","","","","","",""]).map(csv).join(",")); return; }
+    r.detalle.forEach(d=>{ filas.push(base.concat([d.categoria,d.subgrupo,d.item,cumTxt(d.cumple),d.cantidad??"",d.reposicion??"",d.retirar??"",d.observacion]).map(csv).join(",")); });
   });
   const blob=new Blob(["﻿"+filas.join("\r\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); const h=new Date(),p=n=>String(n).padStart(2,"0");
