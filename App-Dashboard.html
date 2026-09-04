@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tablero de Indicadores — Equipamiento (Metrored)</title>
+<style>
+  :root{--azul:#0e7490;--azul-osc:#155e75;--teal:#0d9488;--verde:#16a34a;--rojo:#dc2626;--amber:#d97706;--rosa:#e11d48;--gris:#64748b;--gris-cl:#f1f5f9;--linea:#e2e8f0;--texto:#0f172a;--bg:#f8fafc}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--texto);font-size:15px}
+  header{background:linear-gradient(135deg,var(--azul),var(--teal));color:#fff;padding:14px 18px;position:sticky;top:0;z-index:40;box-shadow:0 2px 10px rgba(0,0,0,.12);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  header h1{margin:0;font-size:18px;font-weight:800;display:flex;gap:8px;align-items:center}
+  header .sub{font-size:12.5px;opacity:.92}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+  .card{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  label{display:block;font-size:12px;font-weight:700;color:#334155;margin:0 0 5px}
+  select,input{width:100%;padding:9px 10px;border:1.5px solid var(--linea);border-radius:9px;font-size:14px;background:#fff;color:var(--texto);font-family:inherit}
+  select:focus,input:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(14,116,144,.12)}
+  button{font-family:inherit;font-weight:700;border:none;border-radius:9px;padding:9px 14px;cursor:pointer;font-size:14px}
+  .btn-ghost{background:var(--gris-cl);color:#334155}
+  .btn-ok{background:var(--verde);color:#fff}
+  @keyframes girar{to{transform:rotate(360deg)}}
+  .btn-ok:hover{background:#15803d}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .hide{display:none!important}
+  /* slicers */
+  .slicers{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:end;margin-bottom:12px}
+  @media(max-width:900px){.slicers{grid-template-columns:1fr 1fr 1fr}}
+  @media(max-width:560px){.slicers{grid-template-columns:1fr 1fr}}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;min-height:4px}
+  .chip{background:#e0f2fe;color:var(--azul-osc);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+  .chip b{font-weight:800}
+  .chip .x{background:var(--azul);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:11px}
+  /* kpis */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+  @media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:560px){.kpis{grid-template-columns:1fr 1fr}}
+  .kpi{background:#fff;border:1px solid var(--linea);border-radius:14px;padding:14px;text-align:center}
+  .kpi.a{background:#ecfeff;border-color:#a5f3fc}
+  .kpi .num{font-size:30px;font-weight:800;color:var(--azul-osc);line-height:1.05}
+  .kpi .lbl{font-size:12px;color:var(--gris);font-weight:600;margin-top:5px}
+  /* charts */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .chart h4{margin:0 0 4px;color:var(--azul-osc);font-size:15px;display:flex;justify-content:space-between;align-items:center}
+  .chart .hint{font-size:11.5px;color:var(--gris);font-weight:500}
+  .chart-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:12.5px;border-radius:8px;padding:2px 4px;transition:background .1s}
+  .chart-row.clk{cursor:pointer}
+  .chart-row.clk:hover{background:#f1f5f9}
+  .chart-row.sel{background:#e0f2fe}
+  .chart-label{width:150px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#334155}
+  .chart-track{flex:1;background:#eef2f7;border-radius:6px;height:20px;overflow:hidden}
+  .chart-fill{height:100%;border-radius:6px;min-width:3px}
+  .chart-val{width:52px;flex:none;text-align:right;font-weight:800;color:var(--texto)}
+  .empty2{color:var(--gris);font-size:13px;padding:10px 0;text-align:center}
+  .aviso{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px 18px;color:#713f12;font-size:14px;line-height:1.5}
+  .aviso b{color:#92400e}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:11px 18px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:90}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>📊 Tablero de Indicadores</h1>
+    <div class="sub">Equipamiento de Consultorios · Metrored</div>
+  </div>
+  <button class="btn-ghost" onclick="location.reload()">↻ Actualizar</button>
+</header>
+
+<div class="wrap">
+  <div id="cargando" class="card" style="text-align:center;color:var(--gris)">Cargando registros…</div>
+
+  <div id="tablero" class="hide">
+    <div class="card" style="margin-bottom:14px">
+      <div class="slicers">
+        <div><label>Centro</label><select id="sCentro" onchange="onSlicer('centro',this.value)"></select></div>
+        <div><label>Especialidad</label><select id="sEsp" onchange="onSlicer('especialidad',this.value)"></select></div>
+        <div><label>Categoría</label><select id="sCat" onchange="onSlicer('categoria',this.value)"></select></div>
+        <div><label>Turno</label><select id="sTurno" onchange="onSlicer('turno',this.value)"></select></div>
+        <div><label>Desde</label><input id="sDesde" type="date" onchange="onSlicer('desde',this.value)"></div>
+        <div><label>Hasta</label><input id="sHasta" type="date" onchange="onSlicer('hasta',this.value)"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">
+        <button class="btn-ghost" onclick="limpiar()">Limpiar filtros</button>
+        <button class="btn-ok" id="btnExcel" onclick="descargarExcel()">⬇️ Descargar Excel</button>
+      </div>
+    </div>
+
+    <div id="chips" class="chips"></div>
+    <div id="kpis" class="kpis"></div>
+    <div id="charts" class="grid"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================================================================
+   TABLERO DE INDICADORES — Equipamiento de Consultorios (Metrored)
+   Para: administración/jefatura. Solo LECTURA: no guarda nada.
+   Se abre desde el botón "📈 Tablero" del panel de administración.
+   ----------------------------------------------------------------------------
+   CÓMO TRAE LOS DATOS — POR TANDAS (esto es lo importante)
+
+   El flujo "Todos los registros" no puede devolver ~60.000 filas de una:
+   Power Automate corta cualquier respuesta HTTP a los 120 segundos.
+   Por eso la app pide de a lotes:
+
+       "dame los 5.000 siguientes al ID 0"    -> filas 151 a 5150
+       "dame los 5.000 siguientes al ID 5150" -> filas 5151 a 10150
+       ... y así hasta que se acaben.
+
+   · LOTE (abajo) DEBE coincidir con el "Primeros puestos" del flujo.
+     Si cambias uno, cambia el otro o la carga se corta antes de tiempo.
+
+   · El flujo manda las cabeceras SOLO en la primera tanda (en las demás
+     viene vacío) para no repetir 1.281 registros en cada llamada.
+
+   · Salvaguarda: si el flujo dejara de respetar "desdeId" y devolviera
+     siempre lo mismo, el bucle detecta las filas repetidas y se corta solo.
+     La app se comporta como antes en vez de quedarse girando.
+
+   CARGA PROGRESIVA: el tablero se pinta con la primera tanda (~40 s) y sigue
+   completándose en segundo plano, mostrando abajo "Cargando más datos…".
+   La carga completa toma varios minutos: es el techo de SharePoint
+   (~185 filas por segundo), no algo que se arregle desde aquí.
+
+   >> POR QUÉ IMPORTA: Cumplimiento, ♻️ Repuesto y 🗑️ Retirado se calculan
+      con el DETALLE. Si el detalle llega cortado, esos tres indicadores
+      salen mal aunque el conteo de registros se vea bien. Ese conteo usa
+      las cabeceras, que sí llegan completas — por eso el error engaña.
+   ----------------------------------------------------------------------------
+   DESCARGA A EXCEL
+   Genera un .xlsx de verdad sin librerías externas (arma el ZIP y el XML a
+   mano, más abajo). Respeta EXACTAMENTE los filtros que estén puestos,
+   incluido el filtro que se aplica al hacer clic en una barra.
+   ============================================================================ */
+const DASHBOARD_URL = "https://default480bd49c6f894faab39ec7728d95d1.30.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/28/workflows/c144280a72234137aa435785a59c6b39/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=vWy5pGP9o6gOniPhAACYtUqLHw6alYtSoGOxojDPpBg";  // flujo "Todos los registros"
+const CATALOGOS_URL = "https://default480bd49c6f894faab39ec7728d95d1.30.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4e7603afaa634f939c70db7787ae34bb/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ONrgwLUoMl6UptXg3P6g_QHkeyMV8HtHfuD7ibzRGmI";
+
+const $ = s => document.querySelector(s);
+function v(x){ if(x==null) return ""; if(Array.isArray(x)) x=x[0]; if(x&&typeof x==="object") return x.Value!=null?x.Value:""; return x; }
+function numN(x){ x=v(x); return (x===""||x==null)?null:Number(x); }
+function escHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2400); }
+
+let REGS=[];
+const F={centro:"",especialidad:"",categoria:"",turno:"",desde:"",hasta:""};
+const LBL={centro:"Centro",especialidad:"Especialidad",categoria:"Categoría",turno:"Turno",desde:"Desde",hasta:"Hasta"};
+
+window.addEventListener("DOMContentLoaded", init);
+
+/* Tamaño de cada tanda. Debe coincidir con el "Superior contar" del flujo. */
+const LOTE = 5000;
+
+/* Reconstruye REGS con lo que se lleva descargado (se llama en cada tanda). */
+function armarREGS(cabeceras, crudo){
+  const regs=(cabeceras||[]).map(normReg);
+  const porReg={};
+  (crudo||[]).forEach(x=>{ const k=v(x.IdClienteRegistro); (porReg[k]=porReg[k]||[]).push(normDet(x)); });
+  regs.forEach(r=>{ r.detalle=porReg[r.id]||[]; });
+  REGS=regs;
+}
+
+/* Aviso flotante de progreso mientras se completa la descarga. */
+/* Cartel flotante de abajo. Tres estados:
+     cargando            -> negro con rueda girando
+     terminó completo    -> se quita (no molesta)
+     terminó INCOMPLETO  -> ROJO y se queda puesto, con botón para recargar
+   El tercer estado es el importante: antes el cartel simplemente desaparecía
+   y el tablero parecía completo aunque le faltaran datos. */
+function avisoCarga(n, cargando, incompleto){
+  let b=$("#avisoCarga");
+  if(!cargando && !incompleto){ if(b) b.remove(); return; }   // cargó todo: fuera el cartel
+  if(!b){
+    b=document.createElement("div"); b.id="avisoCarga";
+    b.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:99;"+
+      "color:#fff;padding:10px 18px;border-radius:999px;font-size:13.5px;max-width:92vw;"+
+      "font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.28);display:flex;align-items:center;gap:9px";
+    document.body.appendChild(b);
+  }
+  if(cargando){
+    b.style.background="#0f172a";
+    b.innerHTML='<span style="display:inline-block;width:11px;height:11px;border:2px solid #fff;'+
+      'border-top-color:transparent;border-radius:50%;animation:girar .8s linear infinite"></span>'+
+      'Cargando más datos… '+n.toLocaleString("es-EC")+' ítems';
+  }else{
+    b.style.background="#b91c1c";   // rojo: no se quita hasta que recarguen
+    b.innerHTML='⚠️ Datos incompletos ('+n.toLocaleString("es-EC")+' ítems). Se cortó la conexión, '+
+      'así que <b>Cumplimiento, Repuesto y Retirado no son confiables</b>. '+
+      '<button onclick="location.reload()" style="margin-left:6px;background:#fff;color:#b91c1c;'+
+      'border:none;border-radius:7px;padding:5px 12px;font-weight:700;cursor:pointer;font-family:inherit">'+
+      'Recargar</button>';
+  }
+}
+
+/* Pide una tanda de detalle a partir de un ID, con reintentos. */
+/* Pide una tanda de detalle a partir de un ID.
+   REINTENTA 8 VECES CON PAUSAS CRECIENTES (1,5s · 3s · 4,5s …).
+   Por qué: este endpoint corta la conexión cada tantas llamadas (medido:
+   ~6 fallos de 15 intentos). Con pocos reintentos el bucle se rinde a mitad
+   de camino y el tablero se queda con datos incompletos. */
+async function pedirLote(desdeId){
+  for(let i=0;i<8;i++){
+    try{
+      const r = await fetch(DASHBOARD_URL, { method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ desdeId: desdeId }) });
+      if(r.ok) return await r.json();      // si el JSON viene cortado, revienta y reintenta
+    }catch(e){ /* reintenta */ }
+    await new Promise(r=>setTimeout(r, 1500*(i+1)));
+  }
+  return null;
+}
+
+async function init(){
+  if(!DASHBOARD_URL){
+    $("#cargando").className="aviso";
+    $("#cargando").innerHTML="⏳ <b>Falta conectar el flujo de datos.</b> El tablero está listo; solo necesita el flujo <b>«Todos los registros»</b> (trae los registros de todos los centros). Cuando lo creemos, se pega su URL aquí y funciona.";
+    return;
+  }
+  try{
+    // Carga POR TANDAS: el flujo devuelve hasta LOTE ítems por llamada, ordenados
+    // por ID. Pedimos "los siguientes a partir del último ID" hasta que se acabe.
+    // Así escala sin límite (no depende de traer todo de un golpe).
+    // 'completo' distingue "recorrí todo el detalle" de "me quedé a medias".
+    // Si queda en false, al final se muestra un aviso ROJO en vez de quitar el cartel:
+    // datos incompletos mostrados como completos es justo el error que arreglamos.
+    let desdeId=0, cabeceras=null, crudo=[], vistos=new Set(), vueltas=0, mostrado=false, completo=false;
+    while(vueltas++ < 400){
+      const d=await pedirLote(desdeId);
+      if(!d){ if(mostrado) break; throw new Error("sin datos"); }   // si ya hay algo pintado, se conserva
+      if(!cabeceras) cabeceras = d.registros||[];
+      const lote = d.detalle||[];
+      // descarta repetidos: si el flujo todavía no acepta "desdeId", se corta solo
+      const nuevos = lote.filter(x=>{ const k=x.ID; if(k==null||vistos.has(k)) return false; vistos.add(k); return true; });
+      crudo = crudo.concat(nuevos);
+
+      // CARGA PROGRESIVA: se pinta lo que va llegando, sin esperar a que termine todo
+      armarREGS(cabeceras, crudo);
+      if(!mostrado){
+        $("#cargando").classList.add("hide"); $("#tablero").classList.remove("hide");
+        mostrado=true;
+      }
+      buildSlicers(); render();
+      avisoCarga(crudo.length, true);
+      await new Promise(r=>setTimeout(r,0));   // deja respirar a la pantalla
+
+      // Tanda incompleta = era la última que había: recorrimos TODO.
+      if(lote.length < LOTE){ completo=true; break; }
+      // Tanda llena pero toda repetida = el flujo no está respetando "desdeId".
+      // Se corta (como antes) pero NO se marca completo: faltan datos.
+      if(!nuevos.length) break;
+      let max=desdeId;
+      for(const x of lote){ const n=Number(x.ID); if(isFinite(n) && n>max) max=n; }
+      if(max<=desdeId) break;              // seguridad: nunca repetir la misma tanda
+      desdeId=max;
+    }
+    avisoCarga(crudo.length, false, !completo);   // si no está completo, avisa en rojo
+  }catch(e){ $("#cargando").innerHTML="No se pudieron cargar los registros. Revisa el internet y recarga."; }
+}
+function normReg(x){ return {
+  id:v(x.IdCliente), centro:v(x.Centro), especialidad:v(x.Especialidad),
+  numeroConsultorio:v(x.NumeroConsultorio), turno:v(x.Turno),
+  fecha:v(x.Fecha)?String(v(x.Fecha)).slice(0,10):"", hora:v(x.Hora),
+  auxiliar:v(x.Auxiliar), enfermero:v(x.Enfermero), fisioterapista:v(x.Fisioterapista),
+  observacionesGenerales:v(x.ObservacionesGenerales), creadoISO:v(x.CreadoISO) }; }
+function normDet(x){ const c=String(v(x.Cumple)).trim().toLowerCase();
+  return { categoria:v(x.Categoria), subgrupo:v(x.Subgrupo), item:v(x.Title)||v(x.Item),
+    cumple:(c==="sí"||c==="si")?true:(c==="no"?false:null),
+    cantidad:numN(x.Cantidad), reposicion:numN(x.Reposicion), retirar:numN(x.Retirar),
+    observacion:v(x.Observacion) }; }
+
+/* ---- slicers ---- */
+function uniq(arr){ return [...new Set(arr.filter(Boolean))].sort(); }
+function buildSlicers(){
+  const cats=uniq([].concat(...REGS.map(r=>(r.detalle||[]).map(d=>d.categoria))));
+  fillSel("sCentro","Todos los centros",uniq(REGS.map(r=>r.centro)));
+  fillSel("sEsp","Todas las especialidades",uniq(REGS.map(r=>r.especialidad)));
+  fillSel("sCat","Todas las categorías",cats);
+  fillSel("sTurno","Todos los turnos",uniq(REGS.map(r=>r.turno)));
+}
+function fillSel(id,todos,opts){
+  $("#"+id).innerHTML=`<option value="">${todos}</option>`+opts.map(o=>`<option>${escHtml(o)}</option>`).join("");
+}
+function onSlicer(dim,val){ F[dim]=val; render(); }
+function setFilter(dim,val){ F[dim]=(F[dim]===val)?"":val; render(); }
+function limpiar(){ Object.keys(F).forEach(k=>F[k]=""); render(); }
+
+/* =====================================================================
+   DESCARGA A EXCEL — respeta EXACTAMENTE los filtros activos
+   Hoja 1 "Detalle": una fila por ítem, con toda la cabecera repetida.
+   Hoja 2 "Resumen": totales por especialidad / categoría / producto.
+   ===================================================================== */
+
+/* El N° de consultorio casi siempre es un número ("8"), pero no siempre: hay
+   consultorios como "rx". Se convierte a número SÓLO si es puramente numérico.
+   Así Excel los ordena bien y no marca "número guardado como texto". */
+function numOtexto(x){
+  const s=String(x==null?"":x).trim();
+  return (s!=="" && /^\d+$/.test(s)) ? Number(s) : s;
+}
+/* Aplica los mismos filtros que el tablero y devuelve las filas planas. */
+function filasDetalle(){
+  const filas=[];
+  baseRegs().forEach(r=>{
+    const dets=(r.detalle||[]).filter(d=>!F.categoria || d.categoria===F.categoria);
+    if(!dets.length){
+      // el registro existe pero no aporta ítems con el filtro puesto: no se omite
+      filas.push([r.id,r.fecha,r.hora,r.centro,r.especialidad,numOtexto(r.numeroConsultorio),r.turno,
+                  r.auxiliar,r.enfermero,r.fisioterapista,r.observacionesGenerales,r.creadoISO,
+                  "","","","",null,null,null,""]);
+      return;
+    }
+    dets.forEach(d=>{
+      filas.push([r.id,r.fecha,r.hora,r.centro,r.especialidad,numOtexto(r.numeroConsultorio),r.turno,
+                  r.auxiliar,r.enfermero,r.fisioterapista,r.observacionesGenerales,r.creadoISO,
+                  d.categoria,d.subgrupo,d.item,
+                  d.cumple===true?"Sí":(d.cumple===false?"No":""),
+                  d.cantidad,d.reposicion,d.retirar,d.observacion]);
+    });
+  });
+  return filas;
+}
+
+function nombreArchivo(){
+  const lim=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  const p=["Equipamiento"];
+  if(F.centro) p.push(lim(F.centro));
+  if(F.especialidad) p.push(lim(F.especialidad));
+  if(F.categoria) p.push(lim(F.categoria));
+  if(F.turno) p.push("Turno-"+lim(F.turno));
+  if(F.desde||F.hasta) p.push((F.desde||"inicio")+"_a_"+(F.hasta||"hoy"));
+  if(p.length===1) p.push("TODO");
+  const n=new Date(), P=x=>String(x).padStart(2,"0");
+  p.push(n.getFullYear()+P(n.getMonth()+1)+P(n.getDate())+"-"+P(n.getHours())+P(n.getMinutes()));
+  return p.join("_")+".xlsx";
+}
+
+function descargarExcel(){
+  const btn=$("#btnExcel");
+  try{
+    const det=filasDetalle();
+    if(!det.length){ toast("No hay datos con los filtros puestos."); return; }
+    btn.disabled=true; btn.textContent="Generando…";
+
+    // UNA SOLA HOJA / UNA SOLA TABLA con toda la información
+    const hojas=[
+      { nombre:"Registros", cabecera:["Registro","Fecha","Hora","Centro","Especialidad","N° Consultorio",
+          "Turno","Auxiliar","Enfermero","Fisioterapista","Observaciones generales","CreadoISO",
+          "Categoría","Subgrupo","Ítem","Cumple","Cantidad","Reposición","Retirar","Observación"],
+        filas:det }
+    ];
+    const blob=construirXlsx(hojas);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=nombreArchivo();
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    toast("✅ Descargadas "+det.length+" filas");
+  }catch(e){
+    console.error(e); toast("No se pudo generar el archivo.");
+  }finally{
+    btn.disabled=false; btn.textContent="⬇️ Descargar Excel";
+  }
+}
+
+/* ---------- generador de .xlsx (ZIP sin compresión + XML) ---------- */
+const _crcT=(()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; }
+  return t; })();
+function _crc32(b){ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=_crcT[(c^b[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function _b(s){ return new TextEncoder().encode(s); }
+function _xe(s){ return String(s==null?"":s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;").replace(/'/g,"&apos;")
+  .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,""); }
+function _col(n){ let s=""; n++; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; }
+
+function _hojaXml(cabecera,filas){
+  const ancho=cabecera.length;
+  const celda=(val,fila,ci,estilo)=>{
+    const ref=_col(ci)+fila, st=estilo?' s="'+estilo+'"':"";
+    if(val===null||val===undefined||val==="") return '<c r="'+ref+'"'+st+'/>';
+    if(typeof val==="number" && isFinite(val)) return '<c r="'+ref+'"'+st+'><v>'+val+'</v></c>';
+    return '<c r="'+ref+'"'+st+' t="inlineStr"><is><t xml:space="preserve">'+_xe(val)+'</t></is></c>';
+  };
+  let xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    +'<dimension ref="A1:'+_col(ancho-1)+(filas.length+1)+'"/>'
+    +'<sheetViews><sheetView workbookViewId="0">'
+    +'<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>'
+    +'</sheetView></sheetViews>'
+    +'<sheetFormatPr defaultRowHeight="15"/><sheetData>';
+  xml+='<row r="1">'+cabecera.map((h,i)=>celda(h,1,i,1)).join("")+'</row>';
+  filas.forEach((f,fi)=>{
+    const r=fi+2;
+    xml+='<row r="'+r+'">'+f.map((val,i)=>celda(val,r,i,0)).join("")+'</row>';
+  });
+  xml+='</sheetData><autoFilter ref="A1:'+_col(ancho-1)+(filas.length+1)+'"/></worksheet>';
+  return xml;
+}
+
+function construirXlsx(hojas){
+  const estilos='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    +'<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font>'
+    +'<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
+    +'<fills count="3"><fill><patternFill patternType="none"/></fill>'
+    +'<fill><patternFill patternType="gray125"/></fill>'
+    +'<fill><patternFill patternType="solid"><fgColor rgb="FF0E7490"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    +'<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+    +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    +'<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    +'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs>'
+    +'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  const archivos=[
+    { n:"[Content_Types].xml", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      +'<Default Extension="xml" ContentType="application/xml"/>'
+      +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+      + hojas.map((h,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("")
+      +'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+      +'</Types>' },
+    { n:"_rels/.rels", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+      +'</Relationships>' },
+    { n:"xl/workbook.xml", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+      +'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+      + hojas.map((h,i)=>'<sheet name="'+_xe(h.nombre)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join("")
+      +'</sheets></workbook>' },
+    { n:"xl/_rels/workbook.xml.rels", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + hojas.map((h,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join("")
+      +'<Relationship Id="rId'+(hojas.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+      +'</Relationships>' },
+    { n:"xl/styles.xml", c:estilos }
+  ];
+  hojas.forEach((h,i)=>archivos.push({ n:"xl/worksheets/sheet"+(i+1)+".xml", c:_hojaXml(h.cabecera,h.filas) }));
+
+  // --- ZIP (método 0 = sin compresión) ---
+  const partes=[], centrales=[]; let offset=0;
+  const u16=n=>[n&255,(n>>8)&255];
+  const u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>24)&255];
+  archivos.forEach(f=>{
+    const nom=_b(f.n), dat=_b(f.c), crc=_crc32(dat);
+    const local=[].concat([0x50,0x4b,0x03,0x04],u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(dat.length),u32(dat.length),u16(nom.length),u16(0));
+    partes.push(new Uint8Array(local), nom, dat);
+    centrales.push([].concat([0x50,0x4b,0x01,0x02],u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(dat.length),u32(dat.length),u16(nom.length),u16(0),u16(0),u16(0),u16(0),
+      u32(0),u32(offset)), nom);
+    offset += local.length + nom.length + dat.length;
+  });
+  const cd=[]; let cdLen=0;
+  for(let i=0;i<centrales.length;i+=2){
+    const h=new Uint8Array(centrales[i]), nom=centrales[i+1];
+    cd.push(h,nom); cdLen += h.length + nom.length;
+  }
+  const fin=new Uint8Array([].concat([0x50,0x4b,0x05,0x06],u16(0),u16(0),
+    u16(archivos.length),u16(archivos.length),u32(cdLen),u32(offset),u16(0)));
+  return new Blob([...partes,...cd,fin],
+    {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+
+/* ---- filtrado ---- */
+function baseRegs(){
+  return REGS.filter(r=>{
+    if(F.centro && r.centro!==F.centro) return false;
+    if(F.especialidad && r.especialidad!==F.especialidad) return false;
+    if(F.turno && r.turno!==F.turno) return false;
+    if(F.desde && r.fecha && r.fecha<F.desde) return false;
+    if(F.hasta && r.fecha && r.fecha>F.hasta) return false;
+    return true;
+  });
+}
+
+/* ---- render ---- */
+function render(){
+  // sincronizar slicers con F
+  $("#sCentro").value=F.centro; $("#sEsp").value=F.especialidad; $("#sCat").value=F.categoria;
+  $("#sTurno").value=F.turno; $("#sDesde").value=F.desde; $("#sHasta").value=F.hasta;
+  // chips
+  const chips=Object.keys(F).filter(k=>F[k]).map(k=>`<span class="chip" onclick="setFilter('${k}','${String(F[k]).replace(/'/g,"\\'")}')"><b>${LBL[k]}:</b> ${escHtml(F[k])} <span class="x">✕</span></span>`);
+  $("#chips").innerHTML = chips.length? chips.join("") : '<span style="color:var(--gris);font-size:12.5px">Sin filtros — mostrando todo. Haz clic en una barra para filtrar.</span>';
+
+  const base=baseRegs();
+  let si=0,no=0,repo=0,reti=0;
+  const porCentro={},porEsp={},porDia={},porCat={},pRepo={},pReti={},centros=new Set();
+  base.forEach(r=>{
+    if(r.centro){centros.add(r.centro);porCentro[r.centro]=(porCentro[r.centro]||0)+1;}
+    if(r.especialidad)porEsp[r.especialidad]=(porEsp[r.especialidad]||0)+1;
+    if(r.fecha)porDia[r.fecha]=(porDia[r.fecha]||0)+1;
+    (r.detalle||[]).forEach(d=>{
+      if(F.categoria && d.categoria!==F.categoria) return;
+      if(d.cumple===true) si++; else if(d.cumple===false) no++;
+      if(d.categoria) porCat[d.categoria]=porCat[d.categoria]||0;
+      if(d.reposicion>0){ repo+=d.reposicion; pRepo[d.item]=(pRepo[d.item]||0)+d.reposicion; if(d.categoria)porCat[d.categoria]+=d.reposicion; }
+      if(d.retirar>0){ reti+=d.retirar; pReti[d.item]=(pReti[d.item]||0)+d.retirar; if(d.categoria)porCat[d.categoria]+=d.retirar; }
+    });
+  });
+  const pct=(si+no)>0?Math.round(si*100/(si+no)):null;
+  $("#kpis").innerHTML=`
+    <div class="kpi a"><div class="num">${base.length}</div><div class="lbl">Registros</div></div>
+    <div class="kpi"><div class="num">${centros.size}</div><div class="lbl">Centros</div></div>
+    <div class="kpi"><div class="num">${pct==null?'—':pct+'%'}</div><div class="lbl">Cumplimiento</div></div>
+    <div class="kpi"><div class="num" style="color:#854d0e">${repo}</div><div class="lbl">♻️ Repuesto</div></div>
+    <div class="kpi"><div class="num" style="color:#9f1239">${reti}</div><div class="lbl">🗑️ Retirado</div></div>`;
+
+  const ent=o=>Object.entries(o).map(([label,val])=>({label,val})).sort((a,b)=>b.val-a.val);
+  const diaEnt=Object.keys(porDia).sort().map(k=>({label:k,val:porDia[k]}));
+  $("#charts").innerHTML=[
+    chart("Registros por centro", ent(porCentro), {color:"var(--azul)", dim:"centro", hint:"clic para filtrar"}),
+    chart("Registros por especialidad", ent(porEsp), {color:"var(--teal)", dim:"especialidad", hint:"clic para filtrar"}),
+    chart("Cumplimiento", [{label:"✓ Cumple",val:si,color:"var(--verde)"},{label:"✗ No cumple",val:no,color:"var(--rosa)"}], {}),
+    chart("Movimiento por categoría (repuesto+retirado)", ent(porCat), {color:"var(--amber)", dim:"categoria", hint:"clic para filtrar"}),
+    chart("Top 10 productos repuestos ♻️", ent(pRepo).slice(0,10), {color:"#d97706"}),
+    chart("Top 10 productos retirados 🗑️", ent(pReti).slice(0,10), {color:"var(--rosa)"}),
+    chart("Registros por día", diaEnt, {color:"var(--azul-osc)"})
+  ].join("");
+}
+
+function chart(title, entries, opts){
+  opts=opts||{};
+  const body = (!entries.length||entries.every(e=>!e.val))
+    ? '<div class="empty2">Sin datos en este filtro.</div>'
+    : (()=>{ const max=Math.max.apply(null,entries.map(e=>e.val))||1;
+        return entries.map(e=>{
+          const sel = opts.dim && F[opts.dim]===e.label;
+          const clk = opts.dim ? `class="chart-row clk${sel?' sel':''}" onclick="setFilter('${opts.dim}','${String(e.label).replace(/'/g,"\\'")}')"` : 'class="chart-row"';
+          return `<div ${clk}>
+            <div class="chart-label" title="${escHtml(e.label)}">${escHtml(e.label)}</div>
+            <div class="chart-track"><div class="chart-fill" style="width:${Math.max(3,Math.round(e.val*100/max))}%;background:${e.color||opts.color||'var(--azul)'}"></div></div>
+            <div class="chart-val">${e.val}</div></div>`;
+        }).join(""); })();
+  return `<div class="card chart"><h4>${escHtml(title)}${opts.hint?`<span class="hint">${opts.hint}</span>`:""}</h4>${body}</div>`;
+}
+</script>
+</body>
+</html>
