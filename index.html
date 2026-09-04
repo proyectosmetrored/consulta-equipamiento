@@ -3,636 +3,849 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel de Administración — Equipamiento (Metrored)</title>
+<title>Consulta por Centro — Equipamiento (Metrored)</title>
 <style>
-  :root{--azul:#0e7490;--azul-osc:#155e75;--teal:#0d9488;--verde:#16a34a;--rojo:#dc2626;--amber:#d97706;--gris:#64748b;--gris-cl:#f1f5f9;--linea:#e2e8f0;--texto:#0f172a;--bg:#f8fafc;--radio:14px}
+  :root{
+    --azul:#0e7490; --azul-osc:#155e75; --teal:#0d9488; --verde:#16a34a;
+    --rojo:#dc2626; --amber:#d97706; --gris:#64748b; --gris-cl:#f1f5f9;
+    --linea:#e2e8f0; --texto:#0f172a; --bg:#f8fafc; --radio:14px;
+  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--texto);font-size:16px;line-height:1.45}
-  header{background:linear-gradient(135deg,var(--azul),var(--teal));color:#fff;padding:14px 18px;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.12);display:flex;justify-content:space-between;align-items:center;gap:12px}
-  .btn-tablero{background:rgba(255,255,255,.2);color:#fff;text-decoration:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:14px;white-space:nowrap}
-  .btn-tablero:hover{background:rgba(255,255,255,.33)}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--texto);font-size:16px;line-height:1.45}
+  header{background:linear-gradient(135deg,var(--azul),var(--teal));color:#fff;
+       padding:14px 18px;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.12)}
   header h1{margin:0;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
   header .sub{font-size:12.5px;opacity:.9;margin-top:2px}
-  .wrap{max-width:1080px;margin:0 auto;padding:16px}
+  .wrap{max-width:1000px;margin:0 auto;padding:16px}
   .card{background:#fff;border:1px solid var(--linea);border-radius:var(--radio);padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card h2{margin:0 0 14px;font-size:17px;color:var(--azul-osc)}
   label{display:block;font-size:13px;font-weight:600;color:#334155;margin:0 0 6px}
+  .req::after{content:" *";color:var(--rojo)}
   input,select{width:100%;padding:12px;border:1.5px solid var(--linea);border-radius:10px;font-size:16px;background:#fff;color:var(--texto);font-family:inherit}
   input:focus,select:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(14,116,144,.12)}
-  button{font-family:inherit;font-size:15px;font-weight:600;border:none;border-radius:10px;padding:12px 16px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px;justify-content:center}
-  .btn-pri{background:var(--azul);color:#fff}.btn-pri:hover{background:var(--azul-osc)}
+  button{font-family:inherit;font-size:15px;font-weight:600;border:none;border-radius:10px;padding:13px 18px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px;justify-content:center}
+  .btn-pri{background:var(--azul);color:#fff;width:100%}
+  .btn-pri:hover{background:var(--azul-osc)}
   .btn-sec{background:#fff;color:var(--azul);border:1.5px solid var(--azul)}
   .btn-ghost{background:var(--gris-cl);color:#334155}
-  .btn-ok{background:var(--verde);color:#fff}.btn-warn{background:#fef3c7;color:#92400e}
+  .btn-ok{background:var(--verde);color:#fff}
   button:disabled{opacity:.55;cursor:not-allowed}
   .hide{display:none!important}
-  .tabbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-  .tabbar button{flex:1;min-width:100px;background:#fff;border:1px solid var(--linea);color:var(--gris)}
-  .tabbar button.act{background:var(--azul);color:#fff;border-color:var(--azul)}
-  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
-  .toolbar input,.toolbar select{flex:1;min-width:160px}
-  .toolbar .btn-ok{flex:none}
-  .conteo{font-size:13px;color:var(--gris);margin-bottom:10px}
+  .err{color:var(--rojo);font-size:13.5px;margin-top:10px;font-weight:600}
+  .hint{font-size:12.5px;color:var(--gris);margin-top:6px}
+  .login-wrap{max-width:420px;margin:6vh auto 0}
+  .login-icon{width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--azul),var(--teal));color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:#fff;border:1px solid var(--linea);border-radius:12px;padding:14px}
+  .stat .n{font-size:26px;font-weight:800;color:var(--azul-osc);line-height:1.1}
+  .stat .l{font-size:12px;color:var(--gris);font-weight:600;margin-top:4px}
+  .stat.a{background:#ecfeff;border-color:#a5f3fc}
+  /* filtros */
+  .filtros{display:grid;grid-template-columns:1fr 1fr 2fr;gap:12px;align-items:end}
+  @media(max-width:700px){.filtros{grid-template-columns:1fr 1fr}.filtros .full{grid-column:1/-1}}
+  /* tabla */
   .tabla-wrap{overflow-x:auto;border:1px solid var(--linea);border-radius:12px}
-  table{border-collapse:collapse;width:100%;font-size:14px;min-width:560px}
-  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--linea);vertical-align:middle;white-space:nowrap}
-  th{background:var(--azul);color:#fff;font-weight:600}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--linea);white-space:nowrap;vertical-align:middle}
+  th{background:var(--azul);color:#fff;font-weight:600;position:sticky;top:0}
   tr:nth-child(even) td{background:#fafcfe}
-  .badge{display:inline-block;border-radius:999px;padding:3px 11px;font-size:12.5px;font-weight:700}
-  .b-si{background:#dcfce7;color:#166534}.b-no{background:#fee2e2;color:#991b1b}
-  .acc-btns{display:flex;gap:6px;flex-wrap:wrap}
-  .acc-btns button{padding:7px 11px;font-size:13px}
+  .pill{display:inline-block;background:#e0f2fe;color:var(--azul-osc);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}
   .empty{text-align:center;color:var(--gris);padding:40px 10px;font-size:14px}
-  /* Tarjetas (sin scroll horizontal) */
-  #lista{display:flex;flex-direction:column;gap:10px}
-  .rec{border:1px solid var(--linea);border-radius:12px;padding:12px 14px;background:#fff}
-  .rec-off{background:#fafafa;opacity:.75}
-  .rec-title{font-size:16px;font-weight:700;color:var(--texto);word-break:break-word}
-  .rec-fields{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px}
-  .rec-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;border-top:1px solid var(--gris-cl);padding-top:10px}
-  .fld{font-size:13.5px;color:#334155;display:inline-flex;align-items:center;gap:5px}
-  .fld-l{color:var(--gris);font-weight:600}
-  .combo{position:relative}
-  .combo-list{position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:60;background:#fff;border:1.5px solid var(--azul);border-radius:10px;max-height:240px;overflow:auto;box-shadow:0 8px 22px rgba(0,0,0,.16);-webkit-overflow-scrolling:touch}
-  .combo-opt{padding:12px 14px;cursor:pointer;font-size:16px;border-bottom:1px solid var(--gris-cl)}
-  .combo-opt:last-child{border-bottom:none}.combo-opt:active,.combo-opt.active{background:#e0f2fe}
-  @media(hover:hover){.combo-opt:hover{background:#e0f2fe}}
-  .combo-empty{padding:12px 14px;color:var(--gris);font-size:14px}
-  .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:90;padding:16px}
-  .modal.show{display:flex}
-  .modal .box{background:#fff;border-radius:14px;max-width:480px;width:100%;max-height:88vh;overflow:auto;padding:20px}
-  .modal h2{margin:0 0 6px;font-size:18px;color:var(--azul-osc)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
-  .row-btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
-  .row-btns button{flex:1;min-width:120px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .topbar .who{font-size:15px;font-weight:700;color:var(--azul-osc)}
+  .row-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .row-btns button{padding:8px 12px;font-size:13px}
+  .tabbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tabbar button{flex:1;min-width:130px;background:#fff;border:1px solid var(--linea);color:var(--gris);padding:11px}
+  .ind-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.ind-grid{grid-template-columns:1fr}}
+  .ind-card{background:#fff;border:1px solid var(--linea);border-radius:12px;padding:16px}
+  .ind-card h4{margin:0 0 12px;color:var(--azul-osc);font-size:15px}
+  .chart-row{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:12.5px}
+  .chart-label{width:130px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#334155}
+  .chart-track{flex:1;background:#eef2f7;border-radius:6px;height:20px;overflow:hidden}
+  .chart-fill{height:100%;border-radius:6px;min-width:3px}
+  .chart-val{width:46px;flex:none;text-align:right;font-weight:700;color:var(--texto)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+  @media(max-width:640px){.kpis{grid-template-columns:1fr 1fr}}
+  .kpi{background:#fff;border:1px solid var(--linea);border-radius:12px;padding:14px;text-align:center}
+  .kpi .num{font-size:28px;font-weight:800;color:var(--azul-osc);line-height:1.1}
+  .kpi .lbl{font-size:12px;color:var(--gris);font-weight:600;margin-top:4px}
+  .empty2{color:var(--gris);font-size:13px;padding:8px 0}
+  .chart-row.clk{cursor:pointer;border-radius:8px;padding:2px 4px;transition:background .1s}
+  .chart-row.clk:hover{background:#f1f5f9}
+  .chart-row.sel{background:#e0f2fe}
+  .ind-hint{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:10px;padding:9px 14px;font-size:12.5px;margin-bottom:14px}
+  .filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .filtros .full{grid-column:1/-1}
+  .filtros select{width:100%;padding:10px;border:1.5px solid var(--linea);border-radius:9px;font-size:14px;background:#fff;font-family:inherit}
+  .tabbar button.act{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .mat-esp{margin-bottom:16px}
+  .mat-esp-h{font-size:15px;font-weight:800;color:var(--azul-osc);margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .mat-table th,.mat-table td{white-space:nowrap;text-align:center}
+  .mat-table th:first-child,.mat-table td:first-child{text-align:left}
+  .mat-table td.wrapc{white-space:normal;min-width:170px}
+  tr.mat-cat td{background:#ecfeff!important;color:var(--azul-osc);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.02em;text-align:left}
+  .mat-table .badge{font-size:11.5px;padding:2px 8px}
+  .mat-ctrls{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .mat-chk{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:#334155;cursor:pointer;background:#fff;border:1px solid var(--linea);border-radius:10px;padding:9px 12px}
+  .mat-chk input{width:auto;margin:0}
+  .acc{border:1px solid var(--linea);border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff}
+  .acc-h{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--gris-cl);cursor:pointer;user-select:none;flex-wrap:wrap}
+  .acc-h .acc-t{font-weight:800;color:var(--azul-osc);font-size:15px;display:flex;align-items:center;gap:8px}
+  .acc-h .acc-tot{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .acc-h .chev{color:var(--gris);transition:.2s;font-size:12px}
+  .acc.open .chev{transform:rotate(180deg)}
+  .acc-b{display:none;padding:6px 12px 12px}
+  .acc.open .acc-b{display:block}
+  .cat-sub{font-size:12px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.02em;margin:12px 2px 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .cat-sub .st{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:100;opacity:0;transition:.3s;pointer-events:none;max-width:90%}
   .toast.show{opacity:1}
-  .err{color:var(--rojo);font-size:13px;margin-top:8px;font-weight:600}
+  /* combo */
+  .combo{position:relative}
+  .combo-list{position:absolute;left:0;right:0;top:calc(100% + 2px);z-index:60;background:#fff;border:1.5px solid var(--azul);border-radius:10px;max-height:260px;overflow:auto;box-shadow:0 8px 22px rgba(0,0,0,.16);-webkit-overflow-scrolling:touch}
+  .combo-opt{padding:13px 14px;cursor:pointer;font-size:16px;border-bottom:1px solid var(--gris-cl)}
+  .combo-opt:last-child{border-bottom:none}
+  .combo-opt:active,.combo-opt.active{background:#e0f2fe}
+  @media(hover:hover){.combo-opt:hover{background:#e0f2fe}}
+  .combo-empty{padding:13px 14px;color:var(--gris);font-size:14px}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:90;padding:16px}
+  .modal.show{display:flex}
+  .modal .box{background:#fff;border-radius:14px;max-width:720px;width:100%;max-height:88vh;overflow:auto;padding:20px}
+  /* ficha */
+  .ficha-head{background:linear-gradient(135deg,var(--azul),var(--teal));color:#fff;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+  .ft-title{font-size:17px;font-weight:800;line-height:1.2}
+  .ft-sub{font-size:13.5px;opacity:.93;margin-top:3px}
+  .ficha-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+  .fld{background:var(--gris-cl);border-radius:10px;padding:9px 12px}
+  .fld small{display:block;font-size:11px;font-weight:700;color:var(--gris);text-transform:uppercase;letter-spacing:.02em;margin-bottom:2px}
+  .fld b{font-size:14.5px;color:var(--texto);font-weight:700}
+  .obs-note{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:14px;color:#713f12}
+  .obs-note small{display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:#a16207;margin-bottom:3px}
+  .cat-sec{border:1px solid var(--linea);border-radius:12px;overflow:hidden;margin-bottom:12px;background:#fff}
+  .cat-h{background:var(--gris-cl);padding:10px 14px;font-weight:700;color:var(--azul-osc);font-size:14.5px;display:flex;align-items:center;gap:8px}
+  .cat-count{margin-left:auto;background:#fff;border:1px solid var(--linea);border-radius:999px;font-size:12px;font-weight:700;color:var(--gris);padding:1px 9px}
+  .det-item{padding:11px 14px;border-top:1px solid var(--linea)}
+  .di-nm{font-size:14px;font-weight:600;margin-bottom:6px}
+  .di-badges{display:flex;flex-wrap:wrap;gap:6px}
+  .det-obs{font-size:13px;color:#475569;font-style:italic;margin-top:6px;background:#f8fafc;border-radius:8px;padding:6px 10px}
+  .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+  .b-si{background:#dcfce7;color:#166534}
+  .b-no{background:#fee2e2;color:#991b1b}
+  .b-cant{background:#dbeafe;color:#1e40af}
+  .b-repo{background:#fef9c3;color:#854d0e}
+  .b-reti{background:#ffe4e6;color:#9f1239}
+  .b-neutral{background:var(--gris-cl);color:var(--gris)}
+  .modal-h3{font-size:14px;color:var(--azul-osc);margin:8px 0 12px;font-weight:700;border-top:1px solid var(--linea);padding-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  @media(max-width:600px){ .ficha-grid{grid-template-columns:1fr 1fr}; .wrap{padding:12px}; header h1{font-size:16px} }
+  /* impresión / PDF */
+  #printArea{display:none}
+  @media print{
+    @page{ margin:12mm }
+    body{ background:#fff!important }
+    body>*{ display:none!important }
+    #printArea{ display:block!important }
+    #printArea *{ -webkit-print-color-adjust:exact; print-color-adjust:exact }
+    .print-reg{ page-break-after:always }
+    .print-reg:last-child{ page-break-after:auto }
+    .print-hd{ font-size:12px; font-weight:800; color:#0e7490; margin-bottom:12px; border-bottom:2px solid #0e7490; padding-bottom:6px }
+    .ficha-head{ background:#0e7490!important }
+    .cat-sec,.det-item{ page-break-inside:avoid }
+  }
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <h1>🗂️ Panel de Administración</h1>
-    <div class="sub">Equipamiento de Consultorios · Metrored</div>
-  </div>
-  <a class="btn-tablero" href="App-Dashboard.html" target="_blank">📈 Tablero</a>
+  <h1>🔐 Consulta por Centro</h1>
+  <div class="sub">Equipamiento de Consultorios · Metrored</div>
 </header>
 
-<div class="wrap">
-  <div id="cargando" class="card" style="text-align:center;color:var(--gris)">Cargando catálogos…</div>
-
-  <div id="panel" class="hide">
-    <div class="tabbar">
-      <button id="tab_aux" class="act" onclick="setTab('aux')">Auxiliares</button>
-      <button id="tab_enf" onclick="setTab('enf')">Enfermeros</button>
-      <button id="tab_fis" onclick="setTab('fis')">Fisioterapistas</button>
-      <button id="tab_cen" onclick="setTab('cen')">Centros</button>
-      <button id="tab_esp" onclick="setTab('esp')">Especialidades</button>
-      <button id="tab_prod" onclick="setTab('prod')">Productos</button>
-      <button id="tab_len" onclick="setTab('len')">Lencería</button>
-      <button id="tab_coc" onclick="setTab('coc')">Coche de paro</button>
-    </div>
-
+<!-- LOGIN -->
+<div id="vLogin" class="wrap">
+  <div class="login-wrap">
     <div class="card">
-      <div class="toolbar">
-        <input id="buscar" type="search" placeholder="🔎 Buscar…" oninput="renderTab()">
-        <button class="btn-ok" onclick="abrirForm()">+ Agregar</button>
-      </div>
-      <div id="filtrosExtra" class="toolbar"></div>
-      <div id="conteo" class="conteo"></div>
-      <!-- Aparece sólo cuando hay un filtro puesto (ver pintarBarraMasiva) -->
-      <div id="barraMasiva" class="hide"></div>
-      <div id="lista"></div>
-      <div id="vacio" class="empty hide"></div>
+      <div class="login-icon">🏥</div>
+      <h2 style="text-align:center">Ingresar a tu centro</h2>
+      <p class="hint" style="text-align:center;margin-bottom:16px">Elige tu centro y escribe la contraseña para ver solo los registros de tu centro.</p>
+      <label class="req" for="centro">Centro médico</label>
+      <input id="centro" autocomplete="off" placeholder="🔎 Escribe o elige tu centro">
+      <label class="req" for="clave" style="margin-top:14px">Contraseña</label>
+      <input id="clave" type="password" autocomplete="off" placeholder="Contraseña del centro" onkeydown="if(event.key==='Enter')entrar()">
+      <div style="margin-top:18px"><button class="btn-pri" id="btnEntrar" onclick="entrar()">Entrar</button></div>
+      <div id="loginErr" class="err hide"></div>
     </div>
+    <p class="hint" style="text-align:center">Cada centro ve únicamente sus propios registros.</p>
   </div>
 </div>
 
-<!-- Modal agregar/editar -->
-<div id="modal" class="modal" onclick="if(event.target===this)cerrarModal()">
-  <div class="box">
-    <h2 id="modalTit">Agregar</h2>
-    <div id="formBody"></div>
-    <div id="formErr" class="err hide"></div>
+<!-- TABLERO -->
+<div id="vPanel" class="wrap hide">
+  <div class="topbar">
+    <div class="who">📍 <span id="centroActual"></span></div>
     <div class="row-btns">
-      <button class="btn-ok" onclick="guardar()">💾 Guardar</button>
-      <button class="btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-ok" onclick="descargarPDFtodos()">⬇️ Descargar PDF</button>
+      <button class="btn-sec" onclick="descargarExcel()">⬇️ Excel</button>
+      <button class="btn-ghost" onclick="salir()">Salir</button>
     </div>
   </div>
-</div>
-
-<!-- Modal de cambio masivo -->
-<div id="modalMasivo" class="modal" onclick="if(event.target===this)cerrarMasivo()">
-  <div class="box">
-    <h2 id="masivoTit">Cambiar varios a la vez</h2>
-    <p id="masivoSub" style="margin:0 0 12px;font-size:13.5px;color:var(--gris)"></p>
-    <div id="masivoBody"></div>
-    <div id="masivoErr" class="err hide"></div>
-    <div id="masivoProgreso" class="hide" style="margin-top:14px">
-      <div style="background:var(--gris-cl);border-radius:999px;height:12px;overflow:hidden">
-        <div id="masivoBarra" style="height:100%;width:0%;background:var(--verde);transition:width .15s"></div>
+  <div class="stats" id="stats"></div>
+  <div class="card">
+    <div class="filtros">
+      <div><label for="fEsp">Especialidad</label><select id="fEsp"></select></div>
+      <div><label for="fCons">N° Consultorio</label><select id="fCons"></select></div>
+      <div><label for="fResp">Responsable</label><select id="fResp"></select></div>
+      <div><label for="fTurno">Turno</label><select id="fTurno"></select></div>
+      <div><label for="fDesde">Desde</label><input id="fDesde" type="date"></div>
+      <div><label for="fHasta">Hasta</label><input id="fHasta" type="date"></div>
+      <div class="full"><label for="fBuscar">Buscar (por ítem o texto)</label><input id="fBuscar" type="search" placeholder="🔎 Buscar por producto, fecha…"></div>
+    </div>
+    <div class="row-btns" style="margin-top:12px"><button class="btn-sec" onclick="limpiarFiltros()">Limpiar filtros</button></div>
+  </div>
+  <div class="tabbar">
+    <button id="tabReg" class="act" onclick="setTab('reg')">📋 Registros</button>
+    <button id="tabMat" onclick="setTab('mat')">📊 Resumen por producto</button>
+    <button id="tabInd" onclick="setTab('ind')">📈 Indicadores</button>
+  </div>
+  <div id="vReg">
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Hora</th><th>Turno</th><th>Especialidad</th><th>N° Cons.</th><th>Responsable</th><th>Ítems</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="tablaEmpty" class="empty hide">No hay registros para los filtros seleccionados.</div>
+  </div>
+  <div id="vMat" class="hide">
+    <div class="mat-ctrls">
+      <label class="mat-chk"><input type="checkbox" id="soloMov" onchange="render()"> Solo con movimiento (repuesto / retirado)</label>
+      <div class="row-btns">
+        <button class="btn-ghost" onclick="expandAcc(true)">Expandir todo</button>
+        <button class="btn-ghost" onclick="expandAcc(false)">Contraer todo</button>
+        <button class="btn-sec" onclick="descargarMatrizExcel()">⬇️ Excel</button>
       </div>
-      <div id="masivoTexto" style="font-size:13px;color:var(--gris);margin-top:7px;text-align:center"></div>
     </div>
-    <div class="row-btns" id="masivoBotones">
-      <button class="btn-ok" onclick="aplicarMasivo()">Aplicar</button>
-      <button class="btn-ghost" onclick="cerrarMasivo()">Cancelar</button>
+    <div id="matrizCont"></div>
+  </div>
+  <div id="vInd" class="hide"></div>
+</div>
+
+<div id="modal" class="modal" onclick="if(event.target===this)cerrarModal()">
+  <div class="box"><div id="modalBody"></div>
+    <div class="row-btns" style="margin-top:14px">
+      <button class="btn-ok" id="modalPdf">⬇️ Descargar PDF</button>
+      <button class="btn-ghost" onclick="cerrarModal()">Cerrar</button>
     </div>
   </div>
 </div>
 
+<div id="printArea"></div>
 <div id="toast" class="toast"></div>
 
 <script>
 /* ============================================================================
-   PANEL DE ADMINISTRACIÓN — Equipamiento de Consultorios (Metrored)
-   Para: quien administra el sistema. Aquí se gestionan los 8 CATÁLOGOS
-   (centros, especialidades, auxiliares, enfermeros, fisioterapistas,
-   productos, lencería y coche de paro) sin abrir SharePoint.
+   PORTAL DE CONSULTA POR CENTRO — Equipamiento de Consultorios (Metrored)
+   Para: las supervisoras. Cada una entra con su centro y su contraseña,
+   y ve ÚNICAMENTE los registros de su centro. Es SOLO LECTURA.
    ----------------------------------------------------------------------------
-   LEE  con el flujo "Obtener catálogos" (CATALOGOS_URL).
-   ESCRIBE con el flujo de administración (ADMIN_URL), mandando:
-       { lista, accion: "crear"|"editar", id, item }
-   Al CREAR se manda id: 0 (no null: el esquema del flujo lo rechaza).
+   SEGURIDAD — LAS DOS REGLAS QUE NO SE PUEDEN ROMPER
 
-   AQUÍ NO SE TOCAN LOS REGISTROS. Lo que llenan las auxiliares es
-   inalterable a propósito; este panel solo administra catálogos.
+   1) La contraseña NUNCA llega al navegador.
+      Vive en la lista "Accesos" de SharePoint, que solo lee el flujo por
+      detrás. Esta pantalla manda {centro, contrasena} y el flujo responde
+      apenas ok:true / ok:false.
+      >> Si algún día alguien agrega la contraseña al flujo de catálogos,
+         quedaría a la vista de cualquiera: este sitio es público y el
+         código se puede leer. NO lo hagas.
 
-   El botón "📈 Tablero" abre App-Dashboard.html, que TIENE que estar
-   subido en la misma carpeta que este archivo.
+   2) El filtrado por centro se hace en el SERVIDOR, no aquí.
+      El flujo devuelve solo los registros de ese centro. Si filtráramos en
+      la pantalla, los datos de los demás centros igual habrían viajado al
+      navegador y bastaría con mirar el tráfico para verlos.
    ----------------------------------------------------------------------------
-   CÓMO ESTÁ ARMADO (importante para mantenerlo)
+   CÓMO TRAE LOS DATOS
+   Igual que el tablero: por tandas ("dame los siguientes al ID tal"), con
+   LOTE_CONS, que debe coincidir con el "Primeros puestos" del flujo.
+   Si el flujo todavía no acepta "desdeId", el bucle detecta las filas
+   repetidas y se corta solo: se comporta como antes, no se rompe.
 
-   Todo gira alrededor del objeto CATS: cada catálogo se DECLARA una vez y
-   la pantalla se construye sola a partir de esa declaración. Cada entrada trae:
-
-       lista   -> nombre de la lista en SharePoint
-       map     -> cómo LEER una fila que viene de SharePoint  (field_1, field_2...)
-       cells   -> qué columnas se ven en la tabla
-       form    -> qué campos salen en el formulario de agregar/editar
-       vals    -> cómo llenar el formulario al editar
-       item    -> cómo ESCRIBIR de vuelta a SharePoint
-
-   >> SI AGREGAS UNA COLUMNA NUEVA A UN CATÁLOGO, hay que tocar los CUATRO:
-      map (leer) + form (capturar) + vals (editar) + item (escribir).
-      Si te saltas "item", el dato se captura pero NUNCA se guarda —
-      y no da ningún error. Es la trampa más fácil de este archivo.
-
-   >> OJO con el nombre interno de "Activo":
-      · En los catálogos que vinieron de importar un CSV se llama field_8.
-      · En el coche de paro se llama Activo, porque esa columna se creó a mano.
-      Por eso el coche lee con tolerancia a los dos y escribe Activo.
-
-   >> Las columnas tipo Opción no llegan como texto sino como {Value:"Sí"}
-      (o [{Value:"Sí"}] si permite varias). Por eso todo pasa por v().
+   >> PENDIENTE CONOCIDO (al escribir esto):
+      al bloque "Obtener Registros centro" del flujo le falta ACTIVAR LA
+      PAGINACIÓN, así que devuelve como mucho 100 registros (el tope por
+      defecto de SharePoint). Los centros con más de 100 registros ven solo
+      una parte. Se arregla en el flujo, no aquí: Configuración ->
+      Paginación: Activado -> Umbral 5000.
    ============================================================================ */
+const CONSULTA_URL = "https://default480bd49c6f894faab39ec7728d95d1.30.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c3a3b3a2b36a4ffe8d2b46d63f41ff21/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t2iSpmsEzu4fxvW0FB5PMpfQDPKxHys-cEMtjn5GXxA";
 const CATALOGOS_URL = "https://default480bd49c6f894faab39ec7728d95d1.30.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4e7603afaa634f939c70db7787ae34bb/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=ONrgwLUoMl6UptXg3P6g_QHkeyMV8HtHfuD7ibzRGmI";
-const ADMIN_URL = "https://default480bd49c6f894faab39ec7728d95d1.30.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/30/workflows/46b5fe9999f940d1a6171526c7ebf526/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=edWNGAyBtc6xPdI_Rnu1pfDgbl8h4ipLDiLSmn6tNhQ";
 
 const $ = s => document.querySelector(s);
+let REGISTROS = [];      // registros del centro (cabecera + .detalle)
+let CENTRO_ACTUAL = "";
+
+/* utilidades */
 function v(x){ if(x==null) return ""; if(Array.isArray(x)) x=x[0]; if(x&&typeof x==="object") return x.Value!=null?x.Value:""; return x; }
+function numN(x){ x=v(x); return (x===""||x==null)?null:Number(x); }
 function escHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2800); }
-function si(x){ const s=String(v(x)).trim().toLowerCase(); return ["sí","si","s","x","true","1","yes"].includes(s); }
-function estado(a){ return a?'<span class="badge b-si">Activo</span>':'<span class="badge b-no">Inactivo</span>'; }
-function siNo(b){ return b?'<span class="badge b-si">Sí</span>':'<span class="badge b-no">No</span>'; }
-const SN = b => b?"Sí":"No";
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2600); }
 
-let ESPEC=[], CATEG=[], SECC_LEN=[], CLASE_COC=[];   // opciones para los formularios
-
-/* ==== Config de catálogos ==== */
-const persona = (lista,sing,label,src)=>({ lista,sing,label,src,
-  head:["Nombre","Centro","Estado"],
-  map:x=>({id:x.ID, nombre:v(x.Title), centro:v(x.field_1), activo:si(x.field_2)}),
-  cells:r=>[`<b>${escHtml(r.nombre)}</b>`, escHtml(r.centro||"—"), estado(r.activo)],
-  search:r=>r.nombre+" "+r.centro,
-  form:[{k:"nombre",label:"Nombre completo",type:"text",req:true},
-        {k:"centro",label:"Centro médico",type:"combo",opts:()=>CENTROS}],
-  vals:r=>({nombre:r.nombre,centro:r.centro,activo:SN(r.activo)}),
-  item:f=>({Title:f.nombre, field_1:{Value:f.centro}, field_2:{Value:f.activo}}) });
-
-const CATS = {
-  aux:persona("Cat_Auxiliares","auxiliar","Auxiliares","auxiliares"),
-  enf:persona("Cat_Enfermeros","enfermero","Enfermeros","enfermeros"),
-  fis:persona("Cat_Fisioterapistas","fisioterapista","Fisioterapistas","fisioterapistas"),
-  cen:{ lista:"Cat_Centros", sing:"centro", label:"Centros", src:"centros",
-    head:["Centro","Estado"],
-    map:x=>({id:x.ID, nombre:v(x.Title), activo:si(x.field_1)}),
-    cells:r=>[`<b>${escHtml(r.nombre)}</b>`, estado(r.activo)],
-    search:r=>r.nombre,
-    form:[{k:"nombre",label:"Nombre del centro",type:"text",req:true}],
-    vals:r=>({nombre:r.nombre,activo:SN(r.activo)}),
-    item:f=>({Title:f.nombre, field_1:{Value:f.activo}}) },
-  esp:{ lista:"Cat_Especialidades", sing:"especialidad", label:"Especialidades", src:"especialidades",
-    head:["Especialidad","Es crítica","Coche de paro","Estado"],
-    map:x=>({id:x.ID, nombre:v(x.Title), cocheParo:si(x.field_1), esCritica:si(x.field_2), activo:si(x.field_3)}),
-    cells:r=>[`<b>${escHtml(r.nombre)}</b>`, siNo(r.esCritica), siNo(r.cocheParo), estado(r.activo)],
-    search:r=>r.nombre,
-    form:[{k:"nombre",label:"Nombre de la especialidad",type:"text",req:true},
-          {k:"esCritica",label:"¿Es crítica? (registra por paciente)",type:"siNo"},
-          {k:"cocheParo",label:"¿Tiene coche de paro?",type:"siNo"}],
-    vals:r=>({nombre:r.nombre, esCritica:SN(r.esCritica), cocheParo:SN(r.cocheParo), activo:SN(r.activo)}),
-    item:f=>({Title:f.nombre, field_1:{Value:f.cocheParo}, field_2:{Value:f.esCritica}, field_3:{Value:f.activo}}) },
-  prod:{ lista:"Cat_Productos", sing:"producto", label:"Productos", src:"productos",
-    head:["Producto","Especialidad","Categoría","Cumple","Cant.","Repo.","Retirar","Obs.","Estado"],
-    map:x=>({id:x.ID, nombre:v(x.Title), especialidad:v(x.field_1), categoria:v(x.field_2),
-             check:si(x.field_3), cantidad:si(x.field_4), reposicion:si(x.field_5), retirar:si(x.field_6),
-             observacion:si(x.field_7), activo:si(x.field_8)}),
-    cells:r=>[`<b>${escHtml(r.nombre)}</b>`, escHtml(r.especialidad), escHtml(r.categoria),
-              siNo(r.check), siNo(r.cantidad), siNo(r.reposicion), siNo(r.retirar), siNo(r.observacion), estado(r.activo)],
-    search:r=>r.nombre+" "+r.especialidad+" "+r.categoria,
-    filtros:[{k:"especialidad",label:"Especialidad"},{k:"categoria",label:"Categoría"}],
-    form:[{k:"nombre",label:"Nombre del producto",type:"text",req:true},
-          {k:"especialidad",label:"Especialidad",type:"combo",opts:()=>ESPEC,req:true},
-          {k:"categoria",label:"Categoría",type:"combolibre",opts:()=>CATEG,req:true},
-          {k:"check",label:"Cumple (check)",type:"siNo"},
-          {k:"cantidad",label:"Cantidad",type:"siNo"},
-          {k:"reposicion",label:"Reposición",type:"siNo"},
-          {k:"retirar",label:"Retirar",type:"siNo"},
-          {k:"observacion",label:"Observación",type:"siNo"}],
-    vals:r=>({nombre:r.nombre, especialidad:r.especialidad, categoria:r.categoria,
-              check:SN(r.check), cantidad:SN(r.cantidad), reposicion:SN(r.reposicion),
-              retirar:SN(r.retirar), observacion:SN(r.observacion), activo:SN(r.activo)}),
-    item:f=>({Title:f.nombre, field_1:f.especialidad, field_2:f.categoria,
-              field_3:{Value:f.check}, field_4:{Value:f.cantidad}, field_5:{Value:f.reposicion},
-              field_6:{Value:f.retirar}, field_7:{Value:f.observacion}, field_8:{Value:f.activo}}) },
-  len:{ lista:"Cat_Lenceria", sing:"prenda", label:"Lencería", src:"lenceria",
-    head:["Prenda","Sección","Cumple","Cant.","Repo.","Retirar","Obs.","Estado"],
-    map:x=>({id:x.ID, nombre:v(x.Title), seccion:v(x.field_1),
-             check:si(x.field_2), cantidad:si(x.field_3), reposicion:si(x.field_4), retirar:si(x.field_5),
-             observacion:si(x.field_6), activo:si(x.field_7)}),
-    cells:r=>[`<b>${escHtml(r.nombre)}</b>`, escHtml(r.seccion),
-              siNo(r.check), siNo(r.cantidad), siNo(r.reposicion), siNo(r.retirar), siNo(r.observacion), estado(r.activo)],
-    search:r=>r.nombre+" "+r.seccion,
-    filtros:[{k:"seccion",label:"Sección"}],
-    form:[{k:"nombre",label:"Nombre de la prenda",type:"text",req:true},
-          {k:"seccion",label:"Sección",type:"combolibre",opts:()=>SECC_LEN,req:true},
-          {k:"check",label:"Cumple (check)",type:"siNo"},
-          {k:"cantidad",label:"Cantidad",type:"siNo"},
-          {k:"reposicion",label:"Reposición",type:"siNo"},
-          {k:"retirar",label:"Retirar",type:"siNo"},
-          {k:"observacion",label:"Observación",type:"siNo"}],
-    vals:r=>({nombre:r.nombre, seccion:r.seccion, check:SN(r.check), cantidad:SN(r.cantidad),
-              reposicion:SN(r.reposicion), retirar:SN(r.retirar), observacion:SN(r.observacion), activo:SN(r.activo)}),
-    item:f=>({Title:f.nombre, field_1:f.seccion, field_2:{Value:f.check}, field_3:{Value:f.cantidad},
-              field_4:{Value:f.reposicion}, field_5:{Value:f.retirar}, field_6:{Value:f.observacion}, field_7:{Value:f.activo}}) },
-  coc:{ lista:"Cat_CocheParo", sing:"ítem del coche", label:"Coche de paro", src:"cocheparo",
-    head:["Ítem","Tipo","Clasificación","Cumple","Cant.","Repo.","Retirar","Obs.","Estado"],
-    // field_8 = Activo. Si está vacío se toma como ACTIVO (no se oculta nada por estar en blanco).
-    map:x=>({id:x.ID, nombre:v(x.Title), tipo:v(x.field_1), clase:v(x.field_2),
-             check:si(x.field_3), cantidad:si(x.field_4), reposicion:si(x.field_5), retirar:si(x.field_6),
-             observacion:si(x.field_7),
-             // el nombre interno de Activo puede ser field_8 (si vino del CSV) o Activo (si se creó a mano)
-             activo: (v(x.field_8)==="" && v(x.Activo)==="") ? true : (si(x.field_8) || si(x.Activo))}),
-    cells:r=>[`<b>${escHtml(r.nombre)}</b>`, escHtml(r.tipo), escHtml(r.clase),
-              siNo(r.check), siNo(r.cantidad), siNo(r.reposicion), siNo(r.retirar), siNo(r.observacion), estado(r.activo)],
-    search:r=>r.nombre+" "+r.tipo+" "+r.clase,
-    filtros:[{k:"tipo",label:"Tipo"},{k:"clase",label:"Clasificación"}],
-    form:[{k:"nombre",label:"Nombre del ítem",type:"text",req:true},
-          {k:"tipo",label:"Tipo",type:"combolibre",opts:()=>["Diario","Quincenal"],req:true},
-          {k:"clase",label:"Clasificación",type:"combolibre",opts:()=>CLASE_COC,req:true},
-          {k:"check",label:"Cumple (check)",type:"siNo"},
-          {k:"cantidad",label:"Cantidad",type:"siNo"},
-          {k:"reposicion",label:"Reposición",type:"siNo"},
-          {k:"retirar",label:"Retirar",type:"siNo"},
-          {k:"observacion",label:"Observación",type:"siNo"}],
-    vals:r=>({nombre:r.nombre, tipo:r.tipo, clase:r.clase,
-              check:SN(r.check), cantidad:SN(r.cantidad), reposicion:SN(r.reposicion),
-              retirar:SN(r.retirar), observacion:SN(r.observacion), activo:SN(r.activo)}),
-    // OJO: aquí Activo se llama "Activo" (columna creada a mano), no "field_8"
-    // como en los demás catálogos (esos vinieron de la importación del CSV).
-    item:f=>({Title:f.nombre, field_1:f.tipo, field_2:f.clase,
-              field_3:{Value:f.check}, field_4:{Value:f.cantidad}, field_5:{Value:f.reposicion},
-              field_6:{Value:f.retirar}, field_7:{Value:f.observacion}, Activo:{Value:f.activo}}) }
-};
-
-let DATA={}, CENTROS=[], TAB="aux", editId=null;
-
+/* ---------- arranque: poblar centros ---------- */
 window.addEventListener("DOMContentLoaded", init);
 async function init(){
+  setupCombo("centro", ()=>window._CENTROS||[]);
   try{
-    const r=await fetch(CATALOGOS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
-    if(!r.ok) throw new Error("status "+r.status);
-    const d=await r.json();
-    for(const k in CATS){ DATA[k]=(d[CATS[k].src]||[]).map(CATS[k].map); }
-    recomputeOpts();
-    $("#cargando").classList.add("hide"); $("#panel").classList.remove("hide");
-    setTab(TAB);
-  }catch(e){ $("#cargando").innerHTML="No se pudieron cargar los catálogos. Revisa el internet y recarga."; }
-}
-function recomputeOpts(){
-  CENTROS=(DATA.cen||[]).filter(r=>r.activo).map(r=>r.nombre).sort();
-  ESPEC=(DATA.esp||[]).filter(r=>r.activo).map(r=>r.nombre).sort();
-  CATEG=[...new Set((DATA.prod||[]).map(r=>r.categoria).filter(Boolean))].sort();
-  SECC_LEN=[...new Set((DATA.len||[]).map(r=>r.seccion).filter(Boolean))].sort();
-  CLASE_COC=[...new Set((DATA.coc||[]).map(r=>r.clase).filter(Boolean))].sort();
+    const r = await fetch(CATALOGOS_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});
+    if(r.ok){
+      const d = await r.json();
+      const si = x=>{ const s=String(v(x)).trim().toLowerCase(); return ["sí","si","s","x","true","1","yes"].includes(s); };
+      window._CENTROS = (d.centros||[]).filter(x=>si(x.field_1)).map(x=>x.Title).sort();
+    }
+  }catch(e){}
 }
 
-function setTab(t){
-  TAB=t; Object.keys(CATS).forEach(k=>$("#tab_"+k).classList.toggle("act",k===t));
-  $("#buscar").value=""; renderFiltros(); renderTab();
-}
-
-function renderFiltros(){
-  const cat=CATS[TAB], box=$("#filtrosExtra");
-  if(!cat.filtros){ box.innerHTML=""; box.classList.add("hide"); return; }
-  box.classList.remove("hide");
-  box.innerHTML=cat.filtros.map(f=>{
-    const vals=[...new Set((DATA[TAB]||[]).map(r=>r[f.k]).filter(Boolean))].sort();
-    return `<select data-fk="${f.k}" onchange="renderTab()"><option value="">Todas — ${escHtml(f.label)}</option>`
-      +vals.map(x=>`<option>${escHtml(x)}</option>`).join("")+`</select>`;
-  }).join("");
-}
-
-/* Devuelve los registros que se están viendo AHORA (búsqueda + filtros de arriba).
-   La usan renderTab Y el cambio masivo, a propósito: así "los N filtrados" son
-   exactamente los que están en pantalla, sin que puedan diferir nunca. */
-function filtradas(){
-  const cat=CATS[TAB];
-  const q=($("#buscar").value||"").trim().toLowerCase();
-  let arr=(DATA[TAB]||[]).slice().sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre)));
-  if(q) arr=arr.filter(r=>cat.search(r).toLowerCase().includes(q));
-  if(cat.filtros){
-    document.querySelectorAll("#filtrosExtra select").forEach(sel=>{
-      if(sel.value) arr=arr.filter(r=>r[sel.dataset.fk]===sel.value);
-    });
-  }
-  return arr;
-}
-/* ¿Hay algún filtro puesto? El cambio masivo está SIEMPRE disponible, porque
-   a veces hay que tocar el catálogo entero. Pero cuando NO hay filtro se avisa
-   en amarillo y la confirmación lo dice con todas sus letras. */
-function hayFiltro(){
-  if(($("#buscar").value||"").trim()) return true;
-  return [...document.querySelectorAll("#filtrosExtra select")].some(s=>s.value);
-}
-
-function renderTab(){
-  const cat=CATS[TAB];
-  const arr=filtradas();
-  $("#conteo").textContent=arr.length+" de "+(DATA[TAB]||[]).length+" registros";
-  pintarBarraMasiva(arr.length);
-  const cont=$("#lista"), vac=$("#vacio");
-  if(!arr.length){ cont.innerHTML=""; vac.textContent=q?"Sin resultados.":"No hay registros en este catálogo."; vac.classList.remove("hide"); return; }
-  vac.classList.add("hide");
-  const usaActivo = cat.activo!==false;
-  cont.innerHTML=arr.map(r=>{
-    const cells=cat.cells(r);
-    const fields=cat.head.slice(1).map((h,i)=>`<span class="fld"><span class="fld-l">${h}:</span> ${cells[i+1]}</span>`).join("");
-    const dim = (usaActivo && !r.activo) ? ' rec-off' : '';
-    const btnToggle = usaActivo ? `<button class="${r.activo?'btn-warn':'btn-ok'}" onclick="toggleActivo(${r.id})">${r.activo?'Desactivar':'Activar'}</button>` : '';
-    return `<div class="rec${dim}">
-      <div class="rec-title">${cells[0]}</div>
-      <div class="rec-fields">${fields}</div>
-      <div class="rec-actions">
-        <button class="btn-sec" onclick="abrirForm(${r.id})">✏️ Editar</button>
-        ${btnToggle}
-      </div>
-    </div>`;
-  }).join("");
-}
-
-/* ---------- formulario dinámico ---------- */
-function abrirForm(id){
-  const cat=CATS[TAB];
-  editId=(id!=null)?id:null;
-  const r = editId!=null ? (DATA[TAB]||[]).find(x=>x.id===editId) : null;
-  const vals = r ? cat.vals(r) : {};
-  $("#modalTit").textContent=(r?"Editar ":"Agregar ")+cat.sing;
-  const siNoFields = cat.form.filter(f=>f.type==="siNo");
-  const otherFields = cat.form.filter(f=>f.type!=="siNo");
-  let html="";
-  otherFields.forEach(fld=>{ html+=campoHtml(fld,vals); });
-  if(siNoFields.length){
-    html+='<div class="grid2" style="margin-top:12px">';
-    siNoFields.forEach(fld=>{ html+="<div>"+campoHtml(fld,vals,true)+"</div>"; });
-    html+='</div>';
-  }
-  $("#formBody").innerHTML=html;
-  $("#formErr").classList.add("hide");
-  $("#modal").classList.add("show");
-}
-function campoHtml(fld,vals,tight){
-  const iid="ff_"+fld.k, val=vals[fld.k]!=null?vals[fld.k]:(fld.type==="siNo"?"Sí":"");
-  let h=`<label for="${iid}"${tight?'':' style="margin-top:12px"'}>${fld.label}${fld.req?' *':''}</label>`;
-  if(fld.type==="siNo"){
-    h+=`<select id="${iid}"><option value="Sí"${val==="Sí"?" selected":""}>Sí</option><option value="No"${val==="No"?" selected":""}>No</option></select>`;
-  }else if(fld.type==="combo"){
-    const opts=(fld.opts()||[]);
-    h+=`<select id="${iid}"><option value="">— Elegir —</option>`
-      +opts.map(o=>`<option${String(o)===String(val)?" selected":""}>${escHtml(o)}</option>`).join("")+`</select>`;
-  }else if(fld.type==="combolibre"){
-    const opts=(fld.opts()||[]), lid="dl_"+fld.k;
-    h+=`<input id="${iid}" list="${lid}" autocomplete="off" value="${escHtml(val)}" placeholder="Elige una o escribe una NUEVA">`
-      +`<datalist id="${lid}">`+opts.map(o=>`<option value="${escHtml(o)}"></option>`).join("")+`</datalist>`;
-  }else{
-    h+=`<input id="${iid}" autocomplete="off" value="${escHtml(val)}" placeholder="">`;
-  }
-  return h;
-}
-function cerrarModal(){ $("#modal").classList.remove("show"); }
-
-async function guardar(){
-  const cat=CATS[TAB], err=$("#formErr"); err.classList.add("hide");
-  const f={};
-  for(const fld of cat.form){
-    const el=document.getElementById("ff_"+fld.k);
-    f[fld.k]=(el?el.value:"").trim();
-    if(fld.req && !f[fld.k]){ err.textContent="Falta: "+fld.label; err.classList.remove("hide"); return; }
-    if(fld.type==="combo" && f[fld.k] && !(fld.opts()||[]).includes(f[fld.k])){ err.textContent="Elige un valor válido para "+fld.label+" (de la lista)."; err.classList.remove("hide"); return; }
-  }
-  // El estado no está en el formulario: se conserva al editar y nace "Activo" al crear (se cambia con el botón Desactivar/Activar).
-  const rExist = editId!=null ? (DATA[TAB]||[]).find(x=>x.id===editId) : null;
-  if(cat.activo!==false){ f.activo = rExist ? SN(rExist.activo) : "Sí"; }
-  const ok = await enviarAdmin({ lista:cat.lista, accion: editId!=null?"editar":"crear", id: editId!=null?editId:0, item:cat.item(f) });
-  if(!ok) return;
-  cerrarModal();
-  if(rExist){   // EDITAR: actualiza al instante en pantalla, sin recargar
-    Object.assign(rExist, cat.map(Object.assign({ID:editId}, cat.item(f))));
-    recomputeOpts(); renderFiltros(); renderTab(); toast("✅ Cambios guardados");
-  }else{        // CREAR: recarga para traer el nuevo con su ID real
-    toast("✅ Registro agregado"); init();
-  }
-}
-/* ============================================================================
-   CAMBIO MASIVO — aplicar un cambio a TODOS los registros filtrados
-
-   Cómo funciona: filtras (búsqueda o los desplegables de arriba), aparece la
-   barra celeste, eliges QUÉ cambiar y se aplica a esos y sólo a esos.
-
-   Decisiones que importan:
-   · Sólo aparece si hay un filtro puesto. Ofrecer "cambiar los 474" sin filtrar
-     es facilitar un accidente que no tiene deshacer.
-   · Usa filtradas(), la MISMA función que pinta la lista: lo que dice la barra
-     es literalmente lo que estás viendo.
-   · Cada campo arranca en "no cambiar". Sólo se toca lo que elijas
-     expresamente; el resto del registro se conserva tal cual (se reconstruye
-     con cat.vals + cat.item, igual que hace Editar).
-   · El nombre no se puede cambiar en bloque: cada registro tiene el suyo.
-   · Va de a uno (~2 s por registro, medido) con reintentos y barra de progreso.
-     Si alguno falla, al final te dice CUÁLES para que reintentes sólo esos.
-     Con lotes grandes es lento; si algún día molesta, se pasa a un flujo por
-     lotes y sólo cambia la parte del envío.
-   ============================================================================ */
-
-let masivoEnCurso=false;
-
-/* Campos que tiene sentido cambiar en bloque en este catálogo. */
-function camposMasivos(cat){
-  const campos=cat.form.filter(f=>f.type==="siNo").map(f=>({k:f.k,label:f.label}));
-  if(cat.activo!==false) campos.unshift({k:"activo",label:"Activo (Sí = activo · No = inactivo)"});
-  return campos;
-}
-
-function pintarBarraMasiva(n){
-  const b=$("#barraMasiva"); if(!b) return;
-  const campos=camposMasivos(CATS[TAB]);
-  if(!n || !campos.length){ b.classList.add("hide"); b.innerHTML=""; return; }
-  b.classList.remove("hide");
-  // Sin filtro alcanza a TODO el catálogo: mismo botón, pero en amarillo de aviso.
-  const con=hayFiltro();
-  const fondo = con ? "#ecfeff" : "#fffbeb", borde = con ? "#a5f3fc" : "#fcd34d";
-  const texto = con
-    ? 'Estás viendo <b>'+n+'</b> '+(n===1?"registro filtrado":"registros filtrados")+'.'
-    : '⚠️ Sin ningún filtro puesto: son <b>los '+n+'</b> del catálogo completo.';
-  b.innerHTML='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:'+fondo+';'+
-    'border:1px solid '+borde+';border-radius:10px;padding:10px 14px;margin-bottom:12px">'+
-    '<span style="font-size:13.5px;color:var(--azul-osc);font-weight:600;flex:1">'+texto+'</span>'+
-    '<button class="btn-ok" style="flex:none" onclick="abrirMasivo()">✏️ Cambiar '+
-    (n===1?"este":"los "+n)+' a la vez</button></div>';
-}
-
-function abrirMasivo(){
-  const cat=CATS[TAB], arr=filtradas();
-  if(!arr.length) return;
-  $("#masivoTit").textContent="Cambiar "+arr.length+" "+(arr.length===1?cat.sing:cat.label.toLowerCase());
-  $("#masivoSub").textContent="Se aplicará únicamente a los "+arr.length+" que estás viendo. "+
-    "Lo que dejes en «no cambiar» queda intacto.";
-  $("#masivoBody").innerHTML = camposMasivos(cat).map(c=>
-    '<div style="margin-bottom:10px"><label>'+escHtml(c.label)+'</label>'+
-    '<select id="mv_'+c.k+'"><option value="">— no cambiar —</option>'+
-    '<option value="Sí">Sí</option><option value="No">No</option></select></div>').join("");
-  $("#masivoErr").classList.add("hide");
-  $("#masivoProgreso").classList.add("hide");
-  $("#masivoBarra").style.width="0%";
-  $("#masivoBotones").classList.remove("hide");
-  $("#modalMasivo").classList.add("show");
-}
-
-function cerrarMasivo(){
-  if(masivoEnCurso){ toast("⏳ Espera a que termine para no dejarlo a medias."); return; }
-  $("#modalMasivo").classList.remove("show");
-}
-
-async function aplicarMasivo(){
-  const cat=CATS[TAB], arr=filtradas(), err=$("#masivoErr");
-  const campos=camposMasivos(cat), cambios={};
-  campos.forEach(c=>{ const s=$("#mv_"+c.k); if(s && s.value) cambios[c.k]=s.value; });
-  const claves=Object.keys(cambios);
-  if(!claves.length){ err.textContent="Elige al menos un campo para cambiar."; err.classList.remove("hide"); return; }
-  if(!arr.length){ err.textContent="No hay registros filtrados."; err.classList.remove("hide"); return; }
-
-  const resumen=campos.filter(c=>cambios[c.k]).map(c=>c.label+" = "+cambios[c.k]).join("\n  · ");
-  const seg=Math.round(arr.length*2.2), tiempo = seg<60 ? seg+" segundos" : Math.ceil(seg/60)+" minutos";
-  // Sin filtro el cambio alcanza al catálogo entero: hay que decirlo sin rodeos.
-  const avisoTodo = hayFiltro() ? "" :
-    "\n\n⚠️ NO tienes ningún filtro puesto: esto alcanza a TODO el catálogo.";
-  if(!confirm("Vas a cambiar en "+arr.length+" registro(s):\n\n  · "+resumen+avisoTodo+
-    "\n\nTardará unos "+tiempo+". Esto NO se puede deshacer.\n\n¿Confirmas?")) return;
-
-  masivoEnCurso=true;
-  $("#masivoBotones").classList.add("hide");
-  $("#masivoProgreso").classList.remove("hide");
-  err.classList.add("hide");
-
-  let ok=0; const fallidos=[];
-  for(let i=0;i<arr.length;i++){
-    const r=arr[i];
-    const f=cat.vals(r);                       // parte de los valores ACTUALES
-    claves.forEach(k=>{ f[k]=cambios[k]; });   // sólo pisa lo elegido
-    const bien = await enviarAdmin({lista:cat.lista, accion:"editar", id:r.id, item:cat.item(f)},
-                                   {intentos:4, silencioso:true});
-    if(bien){ ok++; claves.forEach(k=>{ r[k] = (cambios[k]==="Sí"); }); }   // refleja en pantalla
-    else fallidos.push(r.nombre);
-    const pct=Math.round((i+1)*100/arr.length);
-    $("#masivoBarra").style.width=pct+"%";
-    $("#masivoTexto").textContent="Actualizando "+(i+1)+" de "+arr.length+"…"+
-      (fallidos.length?"  ("+fallidos.length+" con error)":"");
-  }
-  masivoEnCurso=false;
-  recomputeOpts(); renderFiltros(); renderTab();
-
-  if(!fallidos.length){
-    $("#modalMasivo").classList.remove("show");
-    toast("✅ "+ok+" registro(s) actualizados");
-  }else{
-    $("#masivoTexto").textContent="Terminó: "+ok+" actualizados, "+fallidos.length+" con error.";
-    err.innerHTML="No se pudieron actualizar <b>"+fallidos.length+"</b>: "+
-      fallidos.slice(0,6).map(escHtml).join(", ")+(fallidos.length>6?"…":"")+
-      "<br>El resto sí quedó. Vuelve a filtrar y reintenta sólo esos.";
-    err.classList.remove("hide");
-    $("#masivoBotones").classList.remove("hide");
-  }
-}
-
-async function toggleActivo(id){
-  const cat=CATS[TAB], r=(DATA[TAB]||[]).find(x=>x.id===id); if(!r) return;
-  if(r.activo && !confirm("¿Desactivar «"+r.nombre+"»?\n\nDejará de aparecer en la app, pero NO se borra (puedes reactivarlo cuando quieras).")) return;
-  const f=cat.vals(r); f.activo = r.activo?"No":"Sí";
-  const ok = await enviarAdmin({ lista:cat.lista, accion:"editar", id, item:cat.item(f) });
-  if(ok){   // cambia al instante: chip y atenuado
-    r.activo = !r.activo; recomputeOpts(); renderFiltros(); renderTab();
-    toast(r.activo?"✅ Activado":"✅ Desactivado");
-  }
-}
-
-/* Manda UN cambio al flujo de administración y espera su confirmación.
-   payload: { lista, accion: "crear"|"editar", id, item }
-            (al crear, id va en 0 — el esquema del flujo rechaza null)
-
-   Medido el 02/09/2026: cada llamada tarda ~2 segundos, y el endpoint falla
-   de forma intermitente (corta la conexión cada tantas llamadas).
-
-   opciones (para el cambio masivo):
-     intentos   -> cuántas veces reintentar antes de darse por vencido (por
-                   defecto 1, que es como se comportaba antes)
-     silencioso -> no mostrar el aviso de error (en un bucle llenaría la
-                   pantalla de mensajes; el resumen se da al final) */
-async function enviarAdmin(payload, opciones){
-  const op = opciones || {};
-  const intentos = op.intentos || 1;
-  if(!ADMIN_URL){ toast("⏳ Guardado no conectado aún."); return false; }
-  for(let i=0;i<intentos;i++){
-    try{
-      const r=await fetch(ADMIN_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-      if(r.ok) return true;
-    }catch(e){ /* reintenta */ }
-    if(i<intentos-1) await new Promise(res=>setTimeout(res, 1000*(i+1)));   // 1s, 2s, 3s…
-  }
-  if(!op.silencioso) toast("❌ No se pudo guardar. Reintenta.");
-  return false;
-}
-
-/* ---------- combo (scroll táctil + reabre todas + selecciona texto) ---------- */
+/* ---------- desplegable propio (scroll táctil + reabre todas + selecciona texto) ---------- */
 function setupCombo(id, getOpts){
   const input=document.getElementById(id); if(!input) return;
   const wrap=document.createElement("div"); wrap.className="combo";
   input.parentNode.insertBefore(wrap,input); wrap.appendChild(input);
   const list=document.createElement("div"); list.className="combo-list hide"; wrap.appendChild(list);
   let cur=[];
-  function render(all){ const f=all?"":(input.value||"").trim().toLowerCase(); cur=(getOpts()||[]).filter(o=>!f||String(o).toLowerCase().includes(f));
-    if(!cur.length){ list.innerHTML='<div class="combo-empty">Sin resultados</div>'; return; }
-    list.innerHTML=cur.slice(0,300).map((o,i)=>`<div class="combo-opt" data-i="${i}">${escHtml(o)}</div>`).join(""); }
+  function render(all){
+    const f = all ? "" : (input.value||"").trim().toLowerCase();
+    cur=(getOpts()||[]).filter(o=>!f||String(o).toLowerCase().includes(f));
+    if(!cur.length){ list.innerHTML='<div class="combo-empty">Escribe el nombre de tu centro</div>'; return; }
+    list.innerHTML=cur.slice(0,300).map((o,i)=>`<div class="combo-opt" data-i="${i}">${escHtml(o)}</div>`).join("");
+  }
   function abrir(all){ render(all); list.classList.remove("hide"); }
   function cerrar(){ list.classList.add("hide"); }
-  function elegir(i){ if(i<0||i>=cur.length) return; input.value=cur[i]; cerrar(); }
+  function elegir(i){ if(i<0||i>=cur.length) return; input.value=cur[i]; cerrar(); input.dispatchEvent(new Event("change",{bubbles:true})); }
   let sx=0,sy=0,moved=false,downOn=null;
   list.addEventListener("pointerdown",e=>{ downOn=e.target.closest(".combo-opt"); sx=e.clientX; sy=e.clientY; moved=false; },{passive:true});
   list.addEventListener("pointermove",e=>{ if(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10) moved=true; },{passive:true});
   list.addEventListener("pointerup",e=>{ const o=e.target.closest(".combo-opt"); if(o&&o===downOn&&!moved) elegir(+o.dataset.i); downOn=null; });
   const abrirTodo=()=>{ abrir(true); try{input.select();}catch(e){} };
-  input.addEventListener("focus",abrirTodo); input.addEventListener("click",abrirTodo); input.addEventListener("input",()=>abrir(false));
+  input.addEventListener("focus",abrirTodo);
+  input.addEventListener("click",abrirTodo);
+  input.addEventListener("input",()=>abrir(false));
   document.addEventListener("pointerdown",e=>{ if(!wrap.contains(e.target)) cerrar(); },{passive:true});
+}
+
+/* ---------- LOGIN ---------- */
+async function entrar(){
+  const centro=$("#centro").value.trim(), clave=$("#clave").value;
+  const err=$("#loginErr"); err.classList.add("hide");
+  if(!centro||!clave){ err.textContent="Elige tu centro y escribe la contraseña."; err.classList.remove("hide"); return; }
+  const btn=$("#btnEntrar"); btn.disabled=true; btn.textContent="Consultando…";
+
+  // Carga POR TANDAS: el flujo devuelve hasta LOTE ítems por llamada, ordenados por ID.
+  // Pedimos "los siguientes a partir del último ID" hasta que se acabe el detalle.
+  // Así funciona igual con 1.000 que con 500.000 filas.
+  // 'completo' distingue "traje todo" de "me quedé a medias" (ver aviso rojo al final).
+  let desdeId=0, cabeceras=null, crudo=[], vistos=new Set(), vueltas=0, data=null, ultima=null, completo=false;
+  while(vueltas++ < 400){
+    ultima = await pedirLoteConsulta(centro, clave, desdeId);
+    if(!ultima) break;                                  // sin conexión
+    data = ultima;
+    if(!data.ok) break;                                 // clave incorrecta
+    if(!cabeceras) cabeceras = data.registros||[];
+    // El flujo entrega el detalle por tandas (una lista por tanda): aplanamos.
+    // Si viniera ya plano, .flat() no cambia nada, asi que sirve con las dos formas.
+    const lote = (data.detalle||[]).flat();
+    // descarta repetidos: si el flujo todavía no acepta "desdeId", el bucle se corta solo
+    const nuevos = lote.filter(x=>{ const k=x.ID; if(k==null||vistos.has(k)) return false; vistos.add(k); return true; });
+    crudo = crudo.concat(nuevos);
+    btn.textContent = "Cargando… "+crudo.length.toLocaleString("es-EC");
+    // Tanda incompleta = era la última: se recorrió todo.
+    // El flujo entrega TODO el detalle del centro de una sola vez y lo avisa con "completo".
+    if(data.completo===true){ completo=true; break; }
+    if(lote.length < LOTE_CONS){ completo=true; break; }
+    // Tanda llena pero repetida = el flujo no respeta "desdeId": faltan datos.
+    if(!nuevos.length) break;
+    let max=desdeId;
+    for(const x of lote){ const n=Number(x.ID); if(isFinite(n) && n>max) max=n; }
+    if(max<=desdeId) break;                             // seguridad: nunca repetir la misma tanda
+    desdeId=max;
+  }
+
+  btn.disabled=false; btn.textContent="Entrar";
+  if(!data){ err.textContent="No se pudo conectar. Revisa tu internet e inténtalo de nuevo."; err.classList.remove("hide"); return; }
+  if(!data.ok){ err.textContent="Centro o contraseña incorrectos."; err.classList.remove("hide"); $("#clave").value=""; return; }
+  CENTRO_ACTUAL=centro;
+  const regs=(cabeceras||[]).map(normalizarReg);
+  // agrupar el detalle por su registro (relación IdClienteRegistro = IdCliente)
+  const porReg={};
+  crudo.forEach(x=>{ const k=v(x.IdClienteRegistro); (porReg[k]=porReg[k]||[]).push(normalizarDet(x)); });
+  regs.forEach(r=>{ r.detalle = porReg[r.id] || []; });
+  REGISTROS=regs;
+  $("#clave").value="";
+  mostrarPanel();
+  if(!completo) avisoIncompletoConsulta(crudo.length);   // se cortó: avisar, no disimular
+}
+
+/* Tamaño de cada tanda. Debe coincidir con el "Superior contar" del flujo. */
+const LOTE_CONS = 5000;
+
+/* Pide una tanda de detalle a partir de un ID, con reintentos. */
+/* Pide una tanda al flujo. REINTENTA 8 VECES CON PAUSAS CRECIENTES.
+   Este endpoint corta la conexión cada tantas llamadas; con pocos reintentos
+   la supervisora entraría viendo solo una parte de sus registros. */
+async function pedirLoteConsulta(centro, clave, desdeId){
+  for(let i=0;i<8;i++){
+    try{
+      const r = await fetch(CONSULTA_URL, { method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ centro:centro, contrasena:clave, desdeId:desdeId }) });
+      if(r.ok) return await r.json();     // si el JSON viene cortado, revienta y reintenta
+    }catch(e){ /* reintenta */ }
+    await new Promise(r=>setTimeout(r, 1500*(i+1)));
+  }
+  return null;
+}
+
+/* Cartel ROJO fijo cuando la carga quedó a medias. No se quita solo:
+   es preferible que la supervisora sepa que le faltan datos a que crea
+   que está viendo todo. */
+function avisoIncompletoConsulta(n){
+  let b=document.getElementById("avisoIncompleto");
+  if(!b){
+    b=document.createElement("div"); b.id="avisoIncompleto";
+    b.style.cssText="position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:99;"+
+      "background:#b91c1c;color:#fff;padding:10px 18px;border-radius:999px;font-size:13.5px;"+
+      "font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.28);max-width:92vw";
+    document.body.appendChild(b);
+  }
+  b.innerHTML='⚠️ Datos incompletos ('+n.toLocaleString("es-EC")+' ítems): se cortó la conexión. '+
+    '<button onclick="location.reload()" style="margin-left:6px;background:#fff;color:#b91c1c;'+
+    'border:none;border-radius:7px;padding:5px 12px;font-weight:700;cursor:pointer;font-family:inherit">'+
+    'Reintentar</button>';
+}
+function normalizarReg(x){
+  return {
+    id: v(x.IdCliente),
+    centro: v(x.Centro), especialidad: v(x.Especialidad),
+    numeroConsultorio: v(x.NumeroConsultorio), turno: v(x.Turno),
+    fecha: v(x.Fecha)?String(v(x.Fecha)).slice(0,10):"", hora: v(x.Hora),
+    auxiliar: v(x.Auxiliar), enfermero: v(x.Enfermero), fisioterapista: v(x.Fisioterapista),
+    observacionesGenerales: v(x.ObservacionesGenerales)
+  };
+}
+function normalizarDet(x){
+  const c=String(v(x.Cumple)).trim().toLowerCase();
+  const cumple = (c==="sí"||c==="si")?true : (c==="no"?false : null);
+  return { categoria:v(x.Categoria), subgrupo:v(x.Subgrupo), item:v(x.Title)||v(x.Item), cumple,
+    cantidad:numN(x.Cantidad), reposicion:numN(x.Reposicion), retirar:numN(x.Retirar),
+    observacion:v(x.Observacion) };
+}
+
+/* ---------- PANEL ---------- */
+const FILTROS=["fEsp","fCons","fResp","fTurno","fDesde","fHasta","fBuscar"];
+function respDe(r){ return r.fisioterapista||r.enfermero||r.auxiliar||""; }
+function mostrarPanel(){
+  $("#vLogin").classList.add("hide"); $("#vPanel").classList.remove("hide");
+  $("#centroActual").textContent=CENTRO_ACTUAL;
+  poblarFiltros();
+  FILTROS.forEach(id=>{ const e=$("#"+id); e.value=""; e.oninput=render; e.onchange=render; });
+  setTab("reg");
+  render();
+}
+function poblarFiltros(){
+  const uniq=f=>[...new Set(REGISTROS.map(f).filter(x=>x!==""&&x!=null))].sort((a,b)=>String(a).localeCompare(String(b),"es",{numeric:true}));
+  fillSel2("fEsp","Todas las especialidades", uniq(r=>r.especialidad));
+  fillSel2("fCons","Todos los consultorios", uniq(r=>String(r.numeroConsultorio)));
+  fillSel2("fResp","Todos los responsables", uniq(respDe));
+  fillSel2("fTurno","Todos los turnos", uniq(r=>r.turno));
+}
+function fillSel2(id,todos,opts){ $("#"+id).innerHTML=`<option value="">${todos}</option>`+opts.map(o=>`<option>${escHtml(o)}</option>`).join(""); }
+function salir(){ REGISTROS=[]; CENTRO_ACTUAL=""; $("#vPanel").classList.add("hide"); $("#vLogin").classList.remove("hide"); $("#centro").value=""; $("#clave").value=""; }
+function limpiarFiltros(){ FILTROS.forEach(id=>$("#"+id).value=""); render(); }
+
+function filtrar(){
+  const esp=$("#fEsp").value, cons=$("#fCons").value, resp=$("#fResp").value, turno=$("#fTurno").value;
+  const desde=$("#fDesde").value, hasta=$("#fHasta").value, q=($("#fBuscar").value||"").trim().toLowerCase();
+  return REGISTROS.filter(r=>{
+    if(esp && r.especialidad!==esp) return false;
+    if(cons && String(r.numeroConsultorio)!==cons) return false;
+    if(resp && respDe(r)!==resp) return false;
+    if(turno && r.turno!==turno) return false;
+    if(desde && r.fecha && r.fecha<desde) return false;
+    if(hasta && r.fecha && r.fecha>hasta) return false;
+    if(q){
+      const items=(r.detalle||[]).map(d=>d.item).join(" ");
+      const blob=[r.fecha,r.hora,r.turno,r.especialidad,r.numeroConsultorio,r.auxiliar,r.enfermero,r.fisioterapista,items].join(" ").toLowerCase();
+      if(!blob.includes(q)) return false;
+    }
+    return true;
+  });
+}
+function render(){
+  const arr=filtrar().sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
+  const esp=new Set(arr.map(r=>r.especialidad).filter(Boolean));
+  const cons=new Set(arr.map(r=>r.numeroConsultorio).filter(Boolean));
+  const fechas=arr.map(r=>r.fecha).filter(Boolean).sort();
+  const rango=fechas.length?(fechas[0]===fechas[fechas.length-1]?fechas[0]:fechas[0]+" a "+fechas[fechas.length-1]):"—";
+  $("#stats").innerHTML=`
+    <div class="stat a"><div class="n">${arr.length}</div><div class="l">Registros</div></div>
+    <div class="stat"><div class="n">${esp.size}</div><div class="l">Especialidades</div></div>
+    <div class="stat"><div class="n">${cons.size}</div><div class="l">Consultorios</div></div>
+    <div class="stat"><div class="n" style="font-size:15px;padding-top:6px">${escHtml(rango)}</div><div class="l">Rango de fechas</div></div>`;
+  $("#matrizCont").innerHTML=renderMatriz(arr);
+  if($("#vInd") && !$("#vInd").classList.contains("hide")) $("#vInd").innerHTML=renderIndicadores(arr);
+  const tb=$("#tbody"), empty=$("#tablaEmpty");
+  if(!arr.length){ tb.innerHTML=""; empty.classList.remove("hide"); return; }
+  empty.classList.add("hide");
+  tb.innerHTML=arr.map(r=>`<tr>
+    <td>${escHtml(r.fecha)}</td><td>${escHtml(r.hora)}</td>
+    <td>${r.turno?`<span class="pill">${escHtml(r.turno)}</span>`:""}</td>
+    <td>${escHtml(r.especialidad)}</td><td>${escHtml(r.numeroConsultorio)}</td>
+    <td>${escHtml(r.fisioterapista||r.enfermero||r.auxiliar||"—")}</td>
+    <td>${(r.detalle||[]).length}</td>
+    <td><div class="row-btns">
+      <button class="btn-sec" onclick="verRegistro('${r.id}')">Ver</button>
+      <button class="btn-sec" onclick="descargarPDFuno('${r.id}')">⬇️ PDF</button>
+    </div></td>
+  </tr>`).join("");
+}
+
+/* ---------- pestañas + matriz (resumen por producto) ---------- */
+function setTab(t){
+  ["reg","mat","ind"].forEach(k=>{
+    const C=k[0].toUpperCase()+k.slice(1);
+    $("#v"+C).classList.toggle("hide",k!==t);
+    $("#tab"+C).classList.toggle("act",k===t);
+  });
+  if(t==="ind") $("#vInd").innerHTML=renderIndicadores(filtrar());
+}
+function renderIndicadores(arr){
+  if(!arr.length) return '<div class="empty">No hay datos para los filtros seleccionados.</div>';
+  let si=0,no=0,repo=0,reti=0;
+  const porEsp={},porCons={},porResp={},porDia={},pRepo={},pReti={};
+  arr.forEach(r=>{
+    if(r.especialidad) porEsp[r.especialidad]=(porEsp[r.especialidad]||0)+1;
+    if(r.numeroConsultorio!==""&&r.numeroConsultorio!=null) porCons[String(r.numeroConsultorio)]=(porCons[String(r.numeroConsultorio)]||0)+1;
+    const re=respDe(r)||"(sin responsable)"; porResp[re]=(porResp[re]||0)+1;
+    if(r.fecha) porDia[r.fecha]=(porDia[r.fecha]||0)+1;
+    (r.detalle||[]).forEach(d=>{
+      if(d.cumple===true) si++; else if(d.cumple===false) no++;
+      if(d.reposicion>0){ repo+=d.reposicion; pRepo[d.item]=(pRepo[d.item]||0)+d.reposicion; }
+      if(d.retirar>0){ reti+=d.retirar; pReti[d.item]=(pReti[d.item]||0)+d.retirar; }
+    });
+  });
+  const pct=(si+no)>0?Math.round(si*100/(si+no)):null;
+  const kpis=`<div class="kpis">
+    <div class="kpi a"><div class="num">${arr.length}</div><div class="lbl">Registros</div></div>
+    <div class="kpi"><div class="num">${pct==null?'—':pct+'%'}</div><div class="lbl">Cumplimiento</div></div>
+    <div class="kpi"><div class="num" style="color:#854d0e">${repo}</div><div class="lbl">♻️ Repuesto</div></div>
+    <div class="kpi"><div class="num" style="color:#9f1239">${reti}</div><div class="lbl">🗑️ Retirado</div></div>
+  </div>`;
+  const ent=o=>Object.entries(o).map(([label,val])=>({label,val})).sort((a,b)=>b.val-a.val);
+  const dia=Object.keys(porDia).sort().map(k=>({label:k,val:porDia[k]}));
+  const grid=`<div class="ind-grid">
+    ${chartC("Registros por especialidad", ent(porEsp), "var(--azul)", "fEsp")}
+    ${chartC("Registros por consultorio", ent(porCons).map(e=>({label:"Cons. "+e.label,val:e.val,raw:e.label})), "var(--teal)", "fCons")}
+    ${chartC("Registros por responsable", ent(porResp), "#7c3aed", "fResp")}
+    ${chartC("Cumplimiento", [{label:"✓ Cumple",val:si,color:"var(--verde)"},{label:"✗ No cumple",val:no,color:"#e11d48"}], "", null)}
+    ${chartC("Top productos repuestos ♻️", ent(pRepo).slice(0,8), "#d97706", null)}
+    ${chartC("Top productos retirados 🗑️", ent(pReti).slice(0,8), "#e11d48", null)}
+    ${chartC("Registros por día", dia, "var(--azul-osc)", null)}
+  </div>`;
+  return `<div class="ind-hint">💡 Haz clic en una barra de <b>especialidad</b>, <b>consultorio</b> o <b>responsable</b> para filtrar todo el tablero. Los filtros de arriba también aplican.</div>`+kpis+grid;
+}
+function chartC(title, entries, color, filtroId){
+  if(!entries.length||entries.every(e=>!e.val)) return `<div class="ind-card"><h4>${escHtml(title)}</h4><div class="empty2">Sin datos.</div></div>`;
+  const max=Math.max.apply(null,entries.map(e=>e.val))||1;
+  const sel=filtroId&&$("#"+filtroId)?$("#"+filtroId).value:"";
+  const rows=entries.map(e=>{
+    const val=e.raw!=null?e.raw:e.label;
+    const isSel=filtroId && String(sel)===String(val);
+    const clk=filtroId?` class="chart-row clk${isSel?' sel':''}" onclick="crossFiltro('${filtroId}','${String(val).replace(/'/g,"\\'")}')"`:` class="chart-row"`;
+    return `<div${clk}>
+      <div class="chart-label" title="${escHtml(e.label)}">${escHtml(e.label)}</div>
+      <div class="chart-track"><div class="chart-fill" style="width:${Math.max(3,Math.round(e.val*100/max))}%;background:${e.color||color||'var(--azul)'}"></div></div>
+      <div class="chart-val">${e.val}</div></div>`;
+  }).join("");
+  return `<div class="ind-card"><h4>${escHtml(title)}</h4>${rows}</div>`;
+}
+function crossFiltro(filtroId,val){
+  const el=$("#"+filtroId); if(!el) return;
+  el.value=(String(el.value)===String(val))?"":val;
+  render();
+}
+function agregarMatriz(arr){
+  const map={};
+  arr.forEach(r=>{ (r.detalle||[]).forEach(d=>{
+    const k=[r.especialidad,d.categoria,d.item].join("||");
+    const m=map[k]||(map[k]={esp:r.especialidad||"—",cat:d.categoria||"Otros",item:d.item||"—",tomas:0,si:0,no:0,cant:0,repo:0,reti:0,hasCant:false,hasRepo:false,hasReti:false});
+    m.tomas++;
+    if(d.cumple===true) m.si++; if(d.cumple===false) m.no++;
+    if(d.cantidad!=null){ m.cant+=d.cantidad; m.hasCant=true; }
+    if(d.reposicion!=null){ m.repo+=d.reposicion; m.hasRepo=true; }
+    if(d.retirar!=null){ m.reti+=d.retirar; m.hasReti=true; }
+  }); });
+  return Object.values(map);
+}
+function renderMatriz(arr){
+  let rows=agregarMatriz(arr);
+  const solo=$("#soloMov")&&$("#soloMov").checked;
+  if(solo) rows=rows.filter(m=>m.repo>0||m.reti>0);
+  if(!rows.length) return '<div class="empty">'+(solo?'Ningún producto con movimiento (repuesto/retirado) en estos filtros.':'No hay ítems registrados para los filtros seleccionados.')+'</div>';
+  const porEsp={}; rows.forEach(m=>{ (porEsp[m.esp]=porEsp[m.esp]||[]).push(m); });
+  return Object.keys(porEsp).sort().map(esp=>{
+    const items=porEsp[esp];
+    const tRepo=items.reduce((s,m)=>s+m.repo,0), tReti=items.reduce((s,m)=>s+m.reti,0), tNo=items.reduce((s,m)=>s+m.no,0);
+    const chips=[`<span class="badge b-neutral">${items.length} productos</span>`];
+    if(tRepo) chips.push(`<span class="badge b-repo">♻️ ${tRepo}</span>`);
+    if(tReti) chips.push(`<span class="badge b-reti">🗑️ ${tReti}</span>`);
+    if(tNo)   chips.push(`<span class="badge b-no">✗ ${tNo}</span>`);
+    const porCat={}; items.forEach(m=>{ (porCat[m.cat]=porCat[m.cat]||[]).push(m); });
+    const body=Object.keys(porCat).sort().map(cat=>{
+      const ci=porCat[cat].sort((a,b)=>a.item.localeCompare(b.item));
+      const cRepo=ci.reduce((s,m)=>s+m.repo,0), cReti=ci.reduce((s,m)=>s+m.reti,0);
+      const sub=[]; if(cRepo) sub.push(`<span class="badge b-repo">♻️ ${cRepo}</span>`); if(cReti) sub.push(`<span class="badge b-reti">🗑️ ${cReti}</span>`);
+      const filas=ci.map(m=>{
+        const cum=(m.si||m.no)?`<span class="badge b-si">✓ ${m.si}</span> <span class="badge b-no">✗ ${m.no}</span>`:"—";
+        return `<tr><td class="wrapc">${escHtml(m.item)}</td><td>${m.tomas}</td><td>${cum}</td>
+          <td>${m.hasCant?m.cant:"—"}</td>
+          <td>${m.hasRepo?'<b style="color:#854d0e">'+m.repo+'</b>':"—"}</td>
+          <td>${m.hasReti?'<b style="color:#9f1239">'+m.reti+'</b>':"—"}</td></tr>`;
+      }).join("");
+      return `<div class="cat-sub">${(ICONS[cat]||"•")+" "}${escHtml(cat)}<span class="st">${sub.join("")}</span></div>
+        <div class="tabla-wrap"><table class="mat-table">
+        <thead><tr><th>Producto</th><th>Registros</th><th>Cumple</th><th>Cant.</th><th>Repuesto</th><th>Retirado</th></tr></thead>
+        <tbody>${filas}</tbody></table></div>`;
+    }).join("");
+    return `<div class="acc"><div class="acc-h" onclick="this.parentElement.classList.toggle('open')">
+        <span class="acc-t">🩺 ${escHtml(esp)}</span>
+        <span class="acc-tot">${chips.join("")}</span>
+        <span class="chev">▼</span>
+      </div><div class="acc-b">${body}</div></div>`;
+  }).join("");
+}
+function expandAcc(open){ document.querySelectorAll("#matrizCont .acc").forEach(a=>a.classList.toggle("open",open)); }
+function descargarMatrizExcel(){
+  let rows=agregarMatriz(filtrar());
+  if($("#soloMov")&&$("#soloMov").checked) rows=rows.filter(m=>m.repo>0||m.reti>0);
+  if(!rows.length){ toast("No hay datos para el resumen"); return; }
+  rows.sort((a,b)=>(a.esp+a.cat+a.item).localeCompare(b.esp+b.cat+b.item));
+  const cabecera=["Especialidad","Categoría","Producto","Registros","Cumple (Sí)","No cumple",
+                  "Cantidad total","Repuesto total","Retirado total"];
+  // los totales van como número para poder sumarlos/ordenarlos en Excel
+  const filas=rows.map(m=>[m.esp,m.cat,m.item,m.tomas,m.si,m.no,
+                           m.hasCant?m.cant:"", m.hasRepo?m.repo:"", m.hasReti?m.reti:""]);
+  try{
+    bajarArchivo(construirXlsx([{nombre:"Resumen", cabecera, filas}]), nombreArchivoConsulta("Resumen"));
+    toast("⬇️ Resumen descargado ("+filas.length.toLocaleString("es-EC")+" productos)");
+  }catch(e){ console.error(e); toast("No se pudo generar el Excel."); }
+}
+
+/* ---------- ficha (cabecera + detalle) ---------- */
+function fichaGeneral(d){
+  const resp=d.fisioterapista||d.enfermero||d.auxiliar||"—";
+  const fld=(ic,lbl,val)=>`<div class="fld"><small>${ic} ${lbl}</small><b>${escHtml(String(val||"—"))}</b></div>`;
+  return `<div class="ficha-head"><div class="ft-title">${escHtml(d.centro||"—")}</div><div class="ft-sub">${escHtml(d.especialidad||"")}</div></div>
+    <div class="ficha-grid">
+      ${fld("🚪","N° Consultorio",d.numeroConsultorio)}${fld("🕐","Turno",d.turno)}
+      ${fld("📅","Fecha",d.fecha)}${fld("⏰","Hora",d.hora)}${fld("👤","Responsable",resp)}
+    </div>
+    ${d.observacionesGenerales?`<div class="obs-note"><small>📝 Observaciones generales</small>${escHtml(d.observacionesGenerales)}</div>`:""}`;
+}
+const ICONS={"Desinfección":"🧼","Verificación de funcionamiento":"🔧","Revisión":"♻️","Reposición insumos/dispositivos":"📦","Cambio de lencería":"🧺"};
+function fichaDetalle(d){
+  const det=d.detalle||[];
+  if(!det.length) return '<div class="empty">Este registro no tiene ítems.</div>';
+  const porCat={}; det.forEach(x=>{ (porCat[x.categoria||"Otros"]=porCat[x.categoria||"Otros"]||[]).push(x); });
+  return Object.keys(porCat).map(cat=>{
+    const items=porCat[cat].map(x=>{
+      const b=[];
+      if(x.cumple!==null) b.push(x.cumple?'<span class="badge b-si">✓ Cumple</span>':'<span class="badge b-no">✗ No cumple</span>');
+      if(x.cantidad!=null) b.push('<span class="badge b-cant">🔢 Hay '+x.cantidad+'</span>');
+      if(x.reposicion!=null) b.push('<span class="badge b-repo">♻️ Repone '+x.reposicion+'</span>');
+      if(x.retirar!=null) b.push('<span class="badge b-reti">🗑️ Retira '+x.retirar+'</span>');
+      return `<div class="det-item"><div class="di-nm">${escHtml(x.item)}</div>
+        <div class="di-badges">${b.join("")||'<span class="badge b-neutral">Sin datos</span>'}</div>
+        ${x.observacion?`<div class="det-obs">📝 ${escHtml(x.observacion)}</div>`:""}</div>`;
+    }).join("");
+    return `<div class="cat-sec"><div class="cat-h">${(ICONS[cat]||"•")+" "}${escHtml(cat)}<span class="cat-count">${porCat[cat].length}</span></div>${items}</div>`;
+  }).join("");
+}
+function verRegistro(id){
+  const d=REGISTROS.find(x=>x.id===id); if(!d) return;
+  $("#modalBody").innerHTML=fichaGeneral(d)+`<h3 class="modal-h3">📋 Detalle del checklist (${(d.detalle||[]).length})</h3>`+fichaDetalle(d);
+  $("#modalPdf").onclick=()=>descargarPDFuno(id);
+  $("#modal").classList.add("show");
+}
+function cerrarModal(){ $("#modal").classList.remove("show"); }
+
+/* ---------- PDF (impresión → Guardar como PDF) ---------- */
+function fichaPrintRegistro(d){
+  return `<div class="print-reg"><div class="print-hd">🏥 Registro de Equipamiento de Consultorios — Metrored</div>
+    ${fichaGeneral(d)}<h3 class="modal-h3">Detalle del checklist (${(d.detalle||[]).length})</h3>${fichaDetalle(d)}</div>`;
+}
+function imprimirPDF(regs,titulo){
+  if(!regs||!regs.length){ toast("No hay registros para descargar"); return; }
+  $("#printArea").innerHTML=regs.map(fichaPrintRegistro).join("");
+  const antes=document.title; document.title=titulo||"Registros";
+  window.addEventListener("afterprint",()=>{ document.title=antes; },{once:true});
+  window.print();
+}
+function descargarPDFuno(id){ const d=REGISTROS.find(x=>x.id===id); if(d) imprimirPDF([d],"Registro-"+(d.especialidad||"")+"-"+(d.fecha||"")); }
+function descargarPDFtodos(){ const a=filtrar().sort((x,y)=>(y.fecha+y.hora).localeCompare(x.fecha+x.hora)); imprimirPDF(a,"Registros-"+CENTRO_ACTUAL); }
+
+/* ---------- Excel (CSV con detalle) ---------- */
+
+/* ---------- generador de .xlsx (mismo que usa el tablero) ----------
+   Arma un Excel de verdad sin librerias externas: construye el ZIP y el XML a mano.
+   Se copio tal cual del tablero, donde ya estaba probado abriendo el archivo con Excel. */
+const _crcT=(()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; }
+  return t; })();
+function _crc32(b){ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=_crcT[(c^b[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function _b(s){ return new TextEncoder().encode(s); }
+function _xe(s){ return String(s==null?"":s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;").replace(/'/g,"&apos;")
+  .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,""); }
+function _col(n){ let s=""; n++; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; }
+
+function _hojaXml(cabecera,filas){
+  const ancho=cabecera.length;
+  const celda=(val,fila,ci,estilo)=>{
+    const ref=_col(ci)+fila, st=estilo?' s="'+estilo+'"':"";
+    if(val===null||val===undefined||val==="") return '<c r="'+ref+'"'+st+'/>';
+    if(typeof val==="number" && isFinite(val)) return '<c r="'+ref+'"'+st+'><v>'+val+'</v></c>';
+    return '<c r="'+ref+'"'+st+' t="inlineStr"><is><t xml:space="preserve">'+_xe(val)+'</t></is></c>';
+  };
+  let xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    +'<dimension ref="A1:'+_col(ancho-1)+(filas.length+1)+'"/>'
+    +'<sheetViews><sheetView workbookViewId="0">'
+    +'<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>'
+    +'</sheetView></sheetViews>'
+    +'<sheetFormatPr defaultRowHeight="15"/><sheetData>';
+  xml+='<row r="1">'+cabecera.map((h,i)=>celda(h,1,i,1)).join("")+'</row>';
+  filas.forEach((f,fi)=>{
+    const r=fi+2;
+    xml+='<row r="'+r+'">'+f.map((val,i)=>celda(val,r,i,0)).join("")+'</row>';
+  });
+  xml+='</sheetData><autoFilter ref="A1:'+_col(ancho-1)+(filas.length+1)+'"/></worksheet>';
+  return xml;
+}
+
+function construirXlsx(hojas){
+  const estilos='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+    +'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    +'<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font>'
+    +'<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
+    +'<fills count="3"><fill><patternFill patternType="none"/></fill>'
+    +'<fill><patternFill patternType="gray125"/></fill>'
+    +'<fill><patternFill patternType="solid"><fgColor rgb="FF0E7490"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    +'<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+    +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    +'<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    +'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs>'
+    +'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  const archivos=[
+    { n:"[Content_Types].xml", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      +'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      +'<Default Extension="xml" ContentType="application/xml"/>'
+      +'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+      + hojas.map((h,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("")
+      +'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+      +'</Types>' },
+    { n:"_rels/.rels", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      +'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+      +'</Relationships>' },
+    { n:"xl/workbook.xml", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+      +'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+      + hojas.map((h,i)=>'<sheet name="'+_xe(h.nombre)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join("")
+      +'</sheets></workbook>' },
+    { n:"xl/_rels/workbook.xml.rels", c:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      +'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + hojas.map((h,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join("")
+      +'<Relationship Id="rId'+(hojas.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+      +'</Relationships>' },
+    { n:"xl/styles.xml", c:estilos }
+  ];
+  hojas.forEach((h,i)=>archivos.push({ n:"xl/worksheets/sheet"+(i+1)+".xml", c:_hojaXml(h.cabecera,h.filas) }));
+
+  // --- ZIP (método 0 = sin compresión) ---
+  const partes=[], centrales=[]; let offset=0;
+  const u16=n=>[n&255,(n>>8)&255];
+  const u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>24)&255];
+  archivos.forEach(f=>{
+    const nom=_b(f.n), dat=_b(f.c), crc=_crc32(dat);
+    const local=[].concat([0x50,0x4b,0x03,0x04],u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(dat.length),u32(dat.length),u16(nom.length),u16(0));
+    partes.push(new Uint8Array(local), nom, dat);
+    centrales.push([].concat([0x50,0x4b,0x01,0x02],u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),
+      u32(crc),u32(dat.length),u32(dat.length),u16(nom.length),u16(0),u16(0),u16(0),u16(0),
+      u32(0),u32(offset)), nom);
+    offset += local.length + nom.length + dat.length;
+  });
+  const cd=[]; let cdLen=0;
+  for(let i=0;i<centrales.length;i+=2){
+    const h=new Uint8Array(centrales[i]), nom=centrales[i+1];
+    cd.push(h,nom); cdLen += h.length + nom.length;
+  }
+  const fin=new Uint8Array([].concat([0x50,0x4b,0x05,0x06],u16(0),u16(0),
+    u16(archivos.length),u16(archivos.length),u32(cdLen),u32(offset),u16(0)));
+  return new Blob([...partes,...cd,fin],
+    {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+
+/* Dispara la descarga de un archivo ya armado. */
+function bajarArchivo(blob, nombre){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+/* El N° de consultorio casi siempre es un número ("8"), pero no siempre: hay
+   consultorios como "rx". Se convierte a número SÓLO si es puramente numérico.
+   Así Excel los ordena bien (1, 2, 10 y no 1, 10, 2) y no marca el triangulito
+   verde de "número guardado como texto", sin romper los que no son números. */
+function numOtexto(x){
+  const s=String(x==null?"":x).trim();
+  return (s!=="" && /^\d+$/.test(s)) ? Number(s) : s;
+}
+/* Nombre del archivo: centro + fecha de hoy. */
+function nombreArchivoConsulta(prefijo){
+  const h=new Date(), p=n=>String(n).padStart(2,"0");
+  return prefijo+"-"+CENTRO_ACTUAL.replace(/[^\w]+/g,"_")+"-"+h.getFullYear()+"-"+p(h.getMonth()+1)+"-"+p(h.getDate())+".xlsx";
+}
+
+/* Descarga los REGISTROS del centro en Excel (.xlsx de verdad, no CSV).
+   Una fila por ítem, repitiendo los datos del registro, y respeta los filtros puestos.
+   Los números van como número (no como texto), así se pueden sumar en Excel. */
+function descargarExcel(){
+  const arr=filtrar().sort((a,b)=>(b.fecha+b.hora).localeCompare(a.fecha+a.hora));
+  if(!arr.length){ toast("No hay registros para descargar"); return; }
+  const cabecera=["Fecha","Hora","Turno","Especialidad","N° Consultorio","Responsable","Obs. generales",
+                  "Categoría","Subgrupo","Ítem","Cumple","Cantidad","Reposición","Retirar","Observación"];
+  const filas=[];
+  const cumTxt=c=>c===null?"":(c?"Sí":"No");
+  arr.forEach(r=>{
+    const resp=r.fisioterapista||r.enfermero||r.auxiliar||"";
+    const base=[r.fecha,r.hora,r.turno,r.especialidad,numOtexto(r.numeroConsultorio),resp,r.observacionesGenerales];
+    if(!(r.detalle||[]).length){ filas.push(base.concat(["","","","","","","",""])); return; }
+    r.detalle.forEach(d=>{
+      filas.push(base.concat([d.categoria,d.subgrupo,d.item,cumTxt(d.cumple),
+        d.cantidad??"", d.reposicion??"", d.retirar??"", d.observacion]));
+    });
+  });
+  try{
+    bajarArchivo(construirXlsx([{nombre:"Registros", cabecera, filas}]), nombreArchivoConsulta("Registros"));
+    toast("⬇️ Excel descargado ("+filas.length.toLocaleString("es-EC")+" filas)");
+  }catch(e){ console.error(e); toast("No se pudo generar el Excel."); }
 }
 </script>
 </body>
