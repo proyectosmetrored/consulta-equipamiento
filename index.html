@@ -691,10 +691,27 @@ function imprimirPDF(regs,titulo){
   $("#printArea").innerHTML=regs.map(fichaPrintRegistro).join("");
   const antes=document.title; document.title=titulo||"Registros";
   window.addEventListener("afterprint",()=>{ document.title=antes; },{once:true});
-  window.print();
+  // Le damos un respiro al navegador para que pinte lo que acabamos de meter:
+  // si se llama a print() en el mismo ciclo, algunos imprimen la hoja en blanco.
+  setTimeout(()=>window.print(), 120);
 }
 function descargarPDFuno(id){ const d=REGISTROS.find(x=>x.id===id); if(d) imprimirPDF([d],"Registro-"+(d.especialidad||"")+"-"+(d.fecha||"")); }
-function descargarPDFtodos(){ const a=filtrar().sort((x,y)=>(y.fecha+y.hora).localeCompare(x.fecha+x.hora)); imprimirPDF(a,"Registros-"+CENTRO_ACTUAL); }
+function descargarPDFtodos(){
+  const a=filtrar().sort((x,y)=>(y.fecha+y.hora).localeCompare(x.fecha+x.hora));
+  if(!a.length){ toast("No hay registros para descargar"); return; }
+  // Cada registro ocupa al menos una hoja. Con cientos, el navegador se atraganta y la
+  // vista previa sale EN BLANCO sin avisar. Preferimos decirlo antes que fallar callados.
+  const items=a.reduce((n,r)=>n+(r.detalle||[]).length,0);
+  if(a.length>30){
+    const msg="Vas a generar un PDF de "+a.length+" registros ("+items.toLocaleString("es-EC")+" ítems),"+
+      " o sea más de "+a.length+" hojas."+"\n\n"+
+      "Es muy probable que el navegador no lo aguante y la vista previa salga en blanco."+"\n\n"+
+      "Te conviene filtrar antes por fecha o especialidad, o descargar en Excel."+"\n\n"+
+      "¿Continuar de todos modos?";
+    if(!confirm(msg)) return;
+  }
+  imprimirPDF(a,"Registros-"+CENTRO_ACTUAL);
+}
 
 /* ---------- Excel (CSV con detalle) ---------- */
 
